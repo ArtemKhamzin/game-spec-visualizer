@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 interface Node {
   id: string;
-  type: string;
+  type: 'entity' | 'event' | 'rule';
   data: any;
 }
 
@@ -14,182 +14,187 @@ interface Edge {
 
 @Injectable()
 export class ParserService {
-  parseSpecFile(content: string): any {
-    // Разбиваем файл на строки и удаляем пустые
-    const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  parseSpecFile(content: string): { success: boolean; data: { nodes: Node[]; edges: Edge[] } } {
+    const lines = content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
     let index = 0;
     const nodes: Node[] = [];
     const edges: Edge[] = [];
     let nodeId = 1;
 
-    // Карты для поиска уже созданных узлов по именам
     const entityMap: Record<string, string> = {};
     const eventMap: Record<string, string> = {};
 
-    // Функция очистки строки от завершающих скобок
-    const cleanLine = (line: string): string => {
-      if (line === "}") return "";
-      if (line.endsWith("}")) return line.slice(0, -1).trim();
-      return line;
-    };
+    const clean = (line: string): string =>
+      line.endsWith('}') ? line.slice(0, -1).trim() : line;
 
-    // Функция создания нового узла и увеличения nodeId
-    const createNode = (type: string, data: any): Node => {
-      const node: Node = { id: String(nodeId++), type, data };
-      nodes.push(node);
-      return node;
-    };
+    const nextId = () => String(nodeId++);
 
     while (index < lines.length) {
-      let line = cleanLine(lines[index]);
-      if (line === "") {
-        index++;
-        continue;
-      }
+      const line = clean(lines[index]);
 
-      // Обработка сущности
+      // === ENTITY ===
       if (line.startsWith('Entity')) {
-        const entityMatch = line.match(/Entity (\w+)\s*{/);
-        if (entityMatch) {
-          const entityName = entityMatch[1];
-          const entityNode = createNode('entity', { label: entityName, events: [] });
-          entityMap[entityName] = entityNode.id;
-          index++; // Переходим внутрь блока Entity
+        const entityName = line.split(/\s+/)[1];
+        const entityId = nextId();
+        const entityNode: Node = {
+          id: entityId,
+          type: 'entity',
+          data: {
+            label: entityName,
+            attributes: {}
+          }
+        };
+        entityMap[entityName] = entityId;
+        nodes.push(entityNode);
+        index++;
 
-          // Внутри Entity обрабатываем вложенные блоки
-          while (index < lines.length && lines[index] !== "}") {
-            let nestedLine = cleanLine(lines[index]);
-            // Обработка блока State внутри Entity
-            if (nestedLine.startsWith('State')) {
-              index++; // Пропускаем "State {"
-              while (index < lines.length && lines[index] !== "}") {
-                let stateLine = cleanLine(lines[index]);
-                // Разбиваем строку по двоеточию
-                const parts = stateLine.split(':');
-                if (parts.length >= 2) {
-                  const key = parts[0].trim();
-                  const value = parts.slice(1).join(':').trim();
-                  // Создаем узел для каждого атрибута (state)
-                  const stateNode = createNode('state', { label: key, value });
-                  // Связываем сущность с состоянием
-                  edges.push({ source: entityNode.id, target: stateNode.id, type: "attribute" });
-                }
-                index++;
-              }
-              index++; // Пропускаем закрывающую скобку для State
-              continue;
-            }
-            // Обработка блока Event внутри Entity
-            else if (nestedLine.startsWith('Event')) {
-              const eventMatch = nestedLine.match(/Event (\w+)\s*{/);
-              if (eventMatch) {
-                const eventName = eventMatch[1];
-                const eventNode = createNode('event', {
-                  label: eventName,
-                  target: "",
-                  requires: "",
-                  effect: "",
-                  probability: "",
-                  trigger: ""
-                });
-                eventMap[eventName] = eventNode.id;
-                // Связь: Entity → Event (действие)
-                edges.push({ source: entityNode.id, target: eventNode.id, type: "action" });
-                index++; // Переходим внутрь блока Event
-                while (index < lines.length && lines[index] !== "}") {
-                  let eventLine = cleanLine(lines[index]);
-                  if (eventLine.startsWith('Target:')) {
-                    eventNode.data.target = eventLine.replace('Target:', '').trim();
-                  } else if (eventLine.startsWith('Requires:')) {
-                    eventNode.data.requires = eventLine.replace('Requires:', '').trim();
-                  } else if (eventLine.startsWith('Effect:')) {
-                    eventNode.data.effect = eventLine.replace('Effect:', '').trim();
-                  } else if (eventLine.startsWith('P[')) {
-                    if (eventNode.data.probability) {
-                      eventNode.data.probability += " " + eventLine;
-                    } else {
-                      eventNode.data.probability = eventLine;
-                    }
-                  } else if (eventLine.startsWith('Trigger:')) {
-                    eventNode.data.trigger = eventLine.replace('Trigger:', '').trim();
-                  }
-                  index++;
-                }
-                index++; // Пропускаем закрывающую скобку для Event
+        while (index < lines.length && lines[index] !== '}') {
+          const inner = clean(lines[index]);
 
-                // Если у события задан target, добавляем связь Event → Target (если целевая сущность найдена)
-                if (eventNode.data.target && entityMap[eventNode.data.target]) {
-                  edges.push({ source: eventNode.id, target: entityMap[eventNode.data.target], type: "target" });
-                }
-                // Если у события задан trigger, добавляем связь от триггерного события к текущему (если найдено)
-                if (eventNode.data.trigger && eventMap[eventNode.data.trigger]) {
-                  edges.push({ source: eventMap[eventNode.data.trigger], target: eventNode.id, type: "trigger" });
-                }
-                continue;
-              } else {
-                index++;
+          // --- State block
+          if (inner.startsWith('State')) {
+            index++;
+            while (index < lines.length && lines[index] !== '}') {
+              const stateLine = clean(lines[index]);
+              const [key, ...rest] = stateLine.split(':');
+              if (key && rest.length > 0) {
+                entityNode.data.attributes[key.trim()] = rest.join(':').trim();
               }
-            } else {
               index++;
             }
+            index++; // skip }
           }
-          index++; // Пропускаем закрывающую скобку для Entity
-          continue;
-        } else {
-          index++;
-          continue;
-        }
-      }
-      // Обработка глобального блока Rule
-      else if (line.startsWith('Rule')) {
-        const ruleMatch = line.match(/Rule (\w+)\s*{/);
-        if (ruleMatch) {
-          const ruleName = ruleMatch[1];
-          const ruleNode = createNode('rule', { label: ruleName, when: "", effect: "", temporal: "" });
-          index++;
-          while (index < lines.length && lines[index] !== "}") {
-            let ruleLine = cleanLine(lines[index]);
-            if (ruleLine.startsWith('When:')) {
-              if (ruleNode.data.when) {
-                ruleNode.data.when += " && " + ruleLine.replace('When:', '').trim();
-              } else {
-                ruleNode.data.when = ruleLine.replace('When:', '').trim();
+
+          // --- Event block
+          else if (inner.startsWith('Event')) {
+            const eventName = inner.split(/\s+/)[1];
+            const eventId = nextId();
+            const eventNode: Node = {
+              id: eventId,
+              type: 'event',
+              data: {
+                label: eventName,
+                target: '',
+                requires: '',
+                effect: '',
+                probability: '',
+                trigger: ''
               }
-            } else if (ruleLine.startsWith('Effect:')) {
-              ruleNode.data.effect = ruleLine.replace('Effect:', '').trim();
-            } else if (ruleLine.startsWith('G(') || ruleLine.startsWith('F(') || ruleLine.includes('->') || ruleLine.startsWith('P[')) {
-              if (ruleNode.data.temporal) {
-                ruleNode.data.temporal += " " + ruleLine;
-              } else {
-                ruleNode.data.temporal = ruleLine;
+            };
+
+            // Карта: "Player.Attack" → eventId
+            eventMap[`${entityNode.data.label}.${eventName}`] = eventId;
+
+            index++;
+            while (index < lines.length && lines[index] !== '}') {
+              const eLine = clean(lines[index]);
+              if (eLine.startsWith('Target:')) {
+                eventNode.data.target = eLine.replace('Target:', '').trim();
+              } else if (eLine.startsWith('Requires:')) {
+                eventNode.data.requires = eLine.replace('Requires:', '').trim();
+              } else if (eLine.startsWith('Effect:')) {
+                eventNode.data.effect = eLine.replace('Effect:', '').trim();
+              } else if (eLine.startsWith('P[')) {
+                eventNode.data.probability += (eventNode.data.probability ? ' ' : '') + eLine;
+              } else if (eLine.startsWith('Trigger:')) {
+                eventNode.data.trigger = eLine.replace('Trigger:', '').trim();
               }
+              index++;
             }
+            index++; // skip }
+
+            nodes.push(eventNode);
+
+            // owns-event
+            edges.push({ source: entityId, target: eventId, type: 'owns-event' });
+
+            // target → entity
+            if (eventNode.data.target && entityMap[eventNode.data.target]) {
+              edges.push({
+                source: eventId,
+                target: entityMap[eventNode.data.target],
+                type: 'target'
+              });
+            }
+          } else {
             index++;
           }
-          index++; // Пропускаем закрывающую скобку для Rule
-          // Для простоты связываем правило с каждой сущностью, на которую оно влияет (здесь – все Entity)
-          for (const ent in entityMap) {
-            edges.push({ source: ruleNode.id, target: entityMap[ent], type: "rule-effect" });
+        }
+
+        index++; // skip entity }
+      }
+
+      // === RULE ===
+      else if (line.startsWith('Rule')) {
+        const ruleName = line.split(/\s+/)[1];
+        const ruleId = nextId();
+        const ruleNode: Node = {
+          id: ruleId,
+          type: 'rule',
+          data: {
+            label: ruleName,
+            when: '',
+            effect: '',
+            temporal: ''
           }
-          continue;
-        } else {
-          index++;
-          continue;
-        }
-      }
-      // Пропускаем блоки типа ProbabilityOperator (так как они интегрированы)
-      else if (line.startsWith('ProbabilityOperator')) {
-        while (index < lines.length && lines[index] !== "}") {
-          index++;
-        }
+        };
         index++;
-        continue;
+        while (index < lines.length && lines[index] !== '}') {
+          const rLine = clean(lines[index]);
+          if (rLine.startsWith('When:')) {
+            ruleNode.data.when = rLine.replace('When:', '').trim();
+          } else if (rLine.startsWith('Effect:')) {
+            ruleNode.data.effect = rLine.replace('Effect:', '').trim();
+          } else if (
+            rLine.startsWith('G(') ||
+            rLine.startsWith('F(') ||
+            rLine.startsWith('P[') ||
+            rLine.includes('->')
+          ) {
+            ruleNode.data.temporal += (ruleNode.data.temporal ? ' ' : '') + rLine;
+          }
+          index++;
+        }
+        index++; // skip }
+        nodes.push(ruleNode);
+
+        // rule-effect (привязываем ко всем entity)
+        for (const entId of Object.values(entityMap)) {
+          edges.push({ source: ruleId, target: entId, type: 'rule-effect' });
+        }
       }
+
       else {
         index++;
       }
     }
 
-    return { nodes, edges };
+    // === TRIGGERS ===
+    for (const node of nodes) {
+      if (node.type === 'event' && node.data.trigger) {
+        const triggerKey = node.data.trigger.includes('.')
+          ? node.data.trigger
+          : `Player.${node.data.trigger}`;
+        if (eventMap[triggerKey]) {
+          edges.push({
+            source: eventMap[triggerKey],
+            target: node.id,
+            type: 'trigger'
+          });
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        nodes,
+        edges
+      }
+    };
   }
 }

@@ -1,7 +1,7 @@
-import { Controller, Post, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ParserService } from './parser.service';
-import { Express } from 'express';
+import { Node, Edge } from './parser.types'; // ✅ импортируем типы явно
 
 @Controller('parser')
 export class ParserController {
@@ -9,9 +9,8 @@ export class ParserController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@UploadedFile() file: Express.Multer.File) {
+  uploadFile(@UploadedFile() file: Express.Multer.File): { success: boolean; data: { nodes: Node[]; edges: Edge[] } } {
     const content = file.buffer.toString('utf-8');
-    const parsedData = this.parserService.parseSpecFile(content);
-    return { success: true, data: parsedData };
+    return this.parserService.parseSpecFile(content);
   }
 }
