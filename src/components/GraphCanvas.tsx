@@ -7,22 +7,25 @@ import ReactFlow, {
   MiniMap,
   ReactFlowProvider,
   Node,
-  Edge
+  Edge,
+  NodeChange
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface Props {
   nodes: Node[];
   edges: Edge[];
+  onNodesChange?: (changes: NodeChange[]) => void;
 }
 
-const GraphCanvas: React.FC<Props> = ({ nodes, edges }) => {
+const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange }) => {
   return (
     <ReactFlowProvider>
       <div className="h-[80vh] w-full border rounded shadow bg-gray-100">
         <ReactFlow
           nodes={nodes}
           edges={edges}
+          onNodesChange={onNodesChange}
           fitView
         >
           <MiniMap />
