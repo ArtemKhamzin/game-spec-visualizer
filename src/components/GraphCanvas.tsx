@@ -11,12 +11,17 @@ import ReactFlow, {
   NodeChange
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import CustomNode from './CustomNode';
 
 interface Props {
   nodes: Node[];
   edges: Edge[];
   onNodesChange?: (changes: NodeChange[]) => void;
 }
+
+const nodeTypes = {
+  custom: CustomNode,
+};
 
 const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange }) => {
   return (
@@ -27,6 +32,7 @@ const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange }) => {
           edges={edges}
           onNodesChange={onNodesChange}
           fitView
+          nodeTypes={nodeTypes}
         >
           <MiniMap />
           <Controls />
