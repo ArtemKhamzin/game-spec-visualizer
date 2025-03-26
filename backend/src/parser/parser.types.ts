@@ -1,6 +1,6 @@
 export interface Node {
   id: string;
-  type: 'entity' | 'event' | 'rule'; // ✅ добавили 'event'
+  type: 'entity' | 'event' | 'rule';
   data: any;
 }
 

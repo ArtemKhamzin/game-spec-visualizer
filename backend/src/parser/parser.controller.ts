@@ -1,7 +1,7 @@
 import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ParserService } from './parser.service';
-import { Node, Edge } from './parser.types'; // ✅ импортируем типы явно
+import { Node, Edge } from './parser.types';
 
 @Controller('parser')
 export class ParserController {

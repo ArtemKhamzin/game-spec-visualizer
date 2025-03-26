@@ -86,7 +86,6 @@ export class ParserService {
               }
             };
 
-            // Карта: "Player.Attack" → eventId
             eventMap[`${entityNode.data.label}.${eventName}`] = eventId;
 
             index++;
@@ -162,7 +161,7 @@ export class ParserService {
         index++; // skip }
         nodes.push(ruleNode);
 
-        // rule-effect (привязываем ко всем entity)
+        // rule-effect
         for (const entId of Object.values(entityMap)) {
           edges.push({ source: ruleId, target: entId, type: 'rule-effect' });
         }
