@@ -23,23 +23,20 @@ const EditorPage = () => {
     }));
   }, []);
 
-  // Обработчик клика по узлу
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
     setSelectedNode(node);
   }, []);
 
-  // Начало перетаскивания разделителя
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     setIsDragging(true);
   };
 
-  // Обновление ширины инспектора при движении мыши
   const onMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !containerRef.current) return;
     const containerRect = containerRef.current.getBoundingClientRect();
-    // Вычисляем новую ширину панели как расстояние от курсора до правой границы контейнера
+
     const newWidth = containerRect.right - e.clientX;
-    setInspectorWidth(newWidth > 150 ? newWidth : 150); // минимум 150px
+    setInspectorWidth(newWidth > 150 ? newWidth : 150);
   }, [isDragging]);
 
   const onMouseUp = useCallback(() => {

@@ -10,7 +10,6 @@ interface Props {
 const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
   const [editedData, setEditedData] = useState<any>({});
 
-  // Обновляем локальное состояние, когда выбран новый узел
   useEffect(() => {
     if (selectedNode) {
       setEditedData(selectedNode.data);
@@ -19,7 +18,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     }
   }, [selectedNode]);
 
-  // Функция обновления значения. Поддерживает вложенные ключи через точку.
   const handleChange = (key: string, value: string) => {
     setEditedData((prev: any) => {
       if (key.includes('.')) {
@@ -37,7 +35,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     });
   };
 
-  // Рендер полей для event-узлов
   const renderEventFields = () => (
     <>
       <div className="mt-2">
@@ -120,7 +117,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     </>
   );
 
-  // Рендер полей для entity-узлов
   const renderEntityFields = () => (
     <>
       <div className="mt-2">
@@ -166,7 +162,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     </>
   );
 
-  // Рендер полей для rule-узлов
   const renderRuleFields = () => (
     <>
       <div className="mt-2">

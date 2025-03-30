@@ -18,29 +18,46 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
 
   const handleParseClick = async () => {
     if (!file) return;
-
     const formData = new FormData();
     formData.append('file', file);
-
     setLoading(true);
     try {
       const res = await fetch('http://localhost:3001/parser/upload', {
         method: 'POST',
         body: formData,
       });
-
       const json = await res.json();
       const { nodes, edges } = json.data;
-
-      const positioned = nodes.map((n: Node, i: number) => ({
-        ...n,
-        position: { x: (i % 5) * 250, y: Math.floor(i / 5) * 180 },
-        type: 'custom',
-        data: {
-          ...n.data,
-          nodeType: n.type,
-        },
-      }));
+      
+      const order = ['rule', 'entity', 'event'];
+      
+      const groups: { [key: string]: Node[] } = {};
+      nodes.forEach((n: Node) => {
+        const t = n.type ? (n.type in { rule: true, entity: true, event: true } ? n.type : 'event') : 'event';
+        if (!groups[t]) {
+          groups[t] = [];
+        }
+        groups[t].push(n);
+      });
+      
+      const spacingY = 200;
+      const spacingX = 250;
+      const positionedNodes: Node[] = [];
+      
+      order.forEach((type, groupIndex) => {
+        const groupNodes = groups[type] || [];
+        groupNodes.forEach((node, index) => {
+          positionedNodes.push({
+            ...node,
+            position: { x: index * spacingX, y: groupIndex * spacingY },
+            type: 'custom',
+            data: {
+              ...node.data,
+              nodeType: node.type,
+            },
+          });
+        });
+      });
 
       const withIds = edges.map((e: Edge) => ({
         ...e,
@@ -53,7 +70,7 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
         },
       }));
 
-      onParsed({ nodes: positioned, edges: withIds });
+      onParsed({ nodes: positionedNodes, edges: withIds });
     } catch (err) {
       console.error('Ошибка загрузки:', err);
     } finally {
