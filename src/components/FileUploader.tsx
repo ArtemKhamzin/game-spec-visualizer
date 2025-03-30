@@ -26,28 +26,31 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
     try {
       const res = await fetch('http://localhost:3001/parser/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       const json = await res.json();
       const { nodes, edges } = json.data;
 
-      // При маппинге устанавливаем позицию, назначаем тип узла "custom" для визуализации,
-      // и копируем тип из n.type в data.nodeType для отображения
       const positioned = nodes.map((n: Node, i: number) => ({
         ...n,
         position: { x: (i % 5) * 250, y: Math.floor(i / 5) * 180 },
         type: 'custom',
         data: {
           ...n.data,
-          nodeType: n.type // берем тип из верхнего уровня
-        }
+          nodeType: n.type,
+        },
       }));
 
       const withIds = edges.map((e: Edge) => ({
         ...e,
         id: `e-${e.source}-${e.target}`,
-        markerEnd: { type: MarkerType.ArrowClosed }
+        markerEnd: { type: MarkerType.ArrowClosed },
+        type: 'customEdge',
+        data: {
+          ...e.data,
+          edgeType: e.type,
+        },
       }));
 
       onParsed({ nodes: positioned, edges: withIds });
