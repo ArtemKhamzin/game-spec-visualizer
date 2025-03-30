@@ -18,6 +18,7 @@ interface Props {
   nodes: Node[];
   edges: Edge[];
   onNodesChange?: (changes: NodeChange[]) => void;
+  onNodeClick?: (event: React.MouseEvent, node: Node) => void;
 }
 
 const nodeTypes = {
@@ -28,7 +29,7 @@ const edgeTypes = {
   customEdge: CustomEdge,
 };
 
-const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange }) => {
+const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange, onNodeClick }) => {
   return (
     <ReactFlowProvider>
       <div className="h-[80vh] w-full border rounded shadow bg-gray-100">
@@ -36,6 +37,7 @@ const GraphCanvas: React.FC<Props> = ({ nodes, edges, onNodesChange }) => {
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
+          onNodeClick={onNodeClick}
           fitView
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
