@@ -37,6 +37,17 @@ const EditorPage = () => {
     }));
   };
 
+  const deleteNode = (nodeId: string) => {
+    setGraph((prev) => ({
+      ...prev,
+      nodes: prev.nodes.filter((node) => node.id !== nodeId),
+      edges: prev.edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId),
+    }));
+    if (selectedNode && selectedNode.id === nodeId) {
+      setSelectedNode(null);
+    }
+  };
+
   const handleAddNode = (data: any) => {
     const id = `${data.nodeType}-${idCounter++}`;
     const offsetX = 100 + idCounter * 40;
@@ -106,12 +117,12 @@ const EditorPage = () => {
       </div>
 
       <div onMouseDown={onMouseDown} className="w-2 cursor-col-resize bg-gray-300" />
-
-      <div
-        style={{ width: inspectorWidth }}
-        className="p-4 border-l overflow-auto h-full flex-shrink-0"
-      >
-        <NodeInspector selectedNode={selectedNode} onUpdateNode={updateNodeData} />
+      <div style={{ width: inspectorWidth }} className="p-4 border-l overflow-auto h-full flex-shrink-0">
+        <NodeInspector
+          selectedNode={selectedNode}
+          onUpdateNode={updateNodeData}
+          onDeleteNode={deleteNode}
+        />
       </div>
 
       {modalType && (

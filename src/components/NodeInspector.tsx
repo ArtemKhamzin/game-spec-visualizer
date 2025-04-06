@@ -6,9 +6,10 @@ import { Node } from 'reactflow';
 interface Props {
   selectedNode: Node | null;
   onUpdateNode: (nodeId: string, newData: any) => void;
+  onDeleteNode: (nodeId: string) => void;
 }
 
-const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode }) => {
+const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode, onDeleteNode }) => {
   const [editedData, setEditedData] = useState<any>({});
 
   useEffect(() => {
@@ -48,7 +49,7 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode }) => {
       return ['label', 'when', 'effect', 'temporal'].map((key) => (
         <div key={key} className="mt-2">
           <label className="block">
-            <strong>{key}:</strong>
+            <strong>{key[0].toUpperCase() + key.slice(1)}:</strong>
             <input
               type="text"
               className={inputClass}
@@ -100,7 +101,7 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode }) => {
       return ['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
         <div key={key} className="mt-2">
           <label className="block">
-            <strong>{key}:</strong>
+            <strong>{key[0].toUpperCase() + key.slice(1)}:</strong>
             <input
               type="text"
               className={inputClass}
@@ -127,6 +128,18 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode }) => {
             <strong>Type:</strong> {editedData.nodeType || ''}
           </div>
           {renderFields()}
+          <div className="mt-4">
+            <button
+              className="px-4 py-2 bg-red-600 text-white rounded"
+              onClick={() => {
+                if (confirm('Удалить узел?')) {
+                  onDeleteNode(selectedNode.id);
+                }
+              }}
+            >
+              Удалить узел
+            </button>
+          </div>
         </div>
       ) : (
         <div>Узел не выбран</div>
