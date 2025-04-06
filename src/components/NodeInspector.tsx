@@ -5,18 +5,23 @@ import { Node } from 'reactflow';
 
 interface Props {
   selectedNode: Node | null;
+  onUpdateNode: (nodeId: string, newData: any) => void;
 }
 
-const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
+const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode }) => {
   const [editedData, setEditedData] = useState<any>({});
 
   useEffect(() => {
     if (selectedNode) {
       setEditedData(selectedNode.data);
-    } else {
-      setEditedData({});
     }
   }, [selectedNode]);
+
+  useEffect(() => {
+    if (selectedNode) {
+      onUpdateNode(selectedNode.id, editedData);
+    }
+  }, [editedData]);
 
   const handleChange = (key: string, value: string) => {
     setEditedData((prev: any) => {
@@ -35,190 +40,79 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     });
   };
 
-  const renderEventFields = () => (
-    <>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Label:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.label || ''}
-            onChange={(e) => handleChange('label', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Target:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.target || ''}
-            onChange={(e) => handleChange('target', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Requires:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.requires || ''}
-            onChange={(e) => handleChange('requires', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Effect:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.effect || ''}
-            onChange={(e) => handleChange('effect', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Probability:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.probability || ''}
-            onChange={(e) => handleChange('probability', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Trigger:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.trigger || ''}
-            onChange={(e) => handleChange('trigger', e.target.value)}
-          />
-        </label>
-      </div>
-    </>
-  );
-
-  const renderEntityFields = () => (
-    <>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Label:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.label || ''}
-            onChange={(e) => handleChange('label', e.target.value)}
-          />
-        </label>
-      </div>
-      {editedData.attributes && (
-        <div className="mt-2">
-          <strong>Attributes:</strong>
-          {Object.entries(editedData.attributes).map(([attr, val]) => (
-            <div key={attr} className="ml-4 mt-1">
-              <label className="block">
-                <strong>{attr}:</strong>
-                <input
-                  type="text"
-                  className="w-full p-1 border rounded mt-1"
-                  value={typeof val === 'string' ? val : String(val)}
-                  onChange={(e) => handleChange(`attributes.${attr}`, e.target.value)}
-                />
-              </label>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  );
-
-  const renderRuleFields = () => (
-    <>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Label:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.label || ''}
-            onChange={(e) => handleChange('label', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>When:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.when || ''}
-            onChange={(e) => handleChange('when', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Effect:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.effect || ''}
-            onChange={(e) => handleChange('effect', e.target.value)}
-          />
-        </label>
-      </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Temporal:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.temporal || ''}
-            onChange={(e) => handleChange('temporal', e.target.value)}
-          />
-        </label>
-      </div>
-    </>
-  );
+  const inputClass = 'w-full p-1 border rounded mt-1';
 
   const renderFields = () => {
     const type = editedData.nodeType;
-    if (type === 'event') {
-      return renderEventFields();
-    }
-    if (type === 'entity') {
-      return renderEntityFields();
-    }
     if (type === 'rule') {
-      return renderRuleFields();
+      return ['label', 'when', 'effect', 'temporal'].map((key) => (
+        <div key={key} className="mt-2">
+          <label className="block">
+            <strong>{key}:</strong>
+            <input
+              type="text"
+              className={inputClass}
+              value={editedData[key] || ''}
+              onChange={(e) => handleChange(key, e.target.value)}
+            />
+          </label>
+        </div>
+      ));
     }
-    return (
-      <>
-        {Object.entries(editedData)
-          .filter(([key]) => key !== 'nodeType')
-          .map(([key, value]) => (
-            <div key={key} className="mt-2">
-              <label className="block">
-                <strong>{key}:</strong>
-                <input
-                  type="text"
-                  className="w-full p-1 border rounded mt-1"
-                  value={String(value)}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                />
-              </label>
+
+    if (type === 'entity') {
+      return (
+        <>
+          <div className="mt-2">
+            <label className="block">
+              <strong>Label:</strong>
+              <input
+                type="text"
+                className={inputClass}
+                value={editedData.label || ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+              />
+            </label>
+          </div>
+          {editedData.attributes && (
+            <div className="mt-2">
+              <strong>Attributes:</strong>
+              {Object.entries(editedData.attributes).map(([attr, val]) => (
+                <div key={attr} className="ml-4 mt-1">
+                  <label className="block">
+                    <strong>{attr}:</strong>
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={String(val)}
+                      onChange={(e) => handleChange(`attributes.${attr}`, e.target.value)}
+                    />
+                  </label>
+                </div>
+              ))}
             </div>
-          ))}
-      </>
-    );
+          )}
+        </>
+      );
+    }
+
+    if (type === 'event') {
+      return ['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
+        <div key={key} className="mt-2">
+          <label className="block">
+            <strong>{key}:</strong>
+            <input
+              type="text"
+              className={inputClass}
+              value={editedData[key] || ''}
+              onChange={(e) => handleChange(key, e.target.value)}
+            />
+          </label>
+        </div>
+      ));
+    }
+
+    return null;
   };
 
   return (
