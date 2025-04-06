@@ -79,12 +79,21 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
   };
 
   return (
-    <div className="mb-4">
-      <input type="file" accept=".spec" onChange={handleFileChange} />
+    <div className="mb-4 flex items-center gap-4">
+      <label className="relative cursor-pointer inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+        Выбрать файл
+        <input
+          type="file"
+          accept=".spec"
+          onChange={handleFileChange}
+          className="absolute left-0 top-0 w-full h-full opacity-0 cursor-pointer"
+        />
+      </label>
+      <span className="text-sm text-gray-600">{file ? file.name : "Файл не выбран"}</span>
       <button
         onClick={handleParseClick}
         disabled={!file || loading}
-        className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? 'Загрузка...' : 'Отобразить'}
       </button>

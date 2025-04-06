@@ -95,19 +95,30 @@ const EditorPage = () => {
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
 
-        <div className="mb-4 flex gap-4">
-          <button className="px-4 py-2 bg-red-600 text-white rounded" onClick={() => setModalType('rule')}>
-            Добавить правило
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={() => setModalType('entity')}>
-            Добавить сущность
-          </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={() => setModalType('event')}>
-            Добавить событие
-          </button>
+        <div className="mb-4 flex items-center">
+          <FileUploader onParsed={setGraph} />
+          <div className="ml-auto flex gap-4">
+            <button
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              onClick={() => setModalType('rule')}
+            >
+              Добавить правило
+            </button>
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              onClick={() => setModalType('entity')}
+            >
+              Добавить сущность
+            </button>
+            <button
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => setModalType('event')}
+            >
+              Добавить событие
+            </button>
+          </div>
         </div>
 
-        <FileUploader onParsed={setGraph} />
         <GraphCanvas
           nodes={graph.nodes}
           edges={graph.edges}
@@ -117,6 +128,7 @@ const EditorPage = () => {
       </div>
 
       <div onMouseDown={onMouseDown} className="w-2 cursor-col-resize bg-gray-300" />
+
       <div style={{ width: inspectorWidth }} className="p-4 border-l overflow-auto h-full flex-shrink-0">
         <NodeInspector
           selectedNode={selectedNode}
