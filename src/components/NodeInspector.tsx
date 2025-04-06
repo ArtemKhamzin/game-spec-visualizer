@@ -103,17 +103,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
           />
         </label>
       </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Type:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.nodeType || ''}
-            onChange={(e) => handleChange('nodeType', e.target.value)}
-          />
-        </label>
-      </div>
     </>
   );
 
@@ -148,17 +137,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
           ))}
         </div>
       )}
-      <div className="mt-2">
-        <label className="block">
-          <strong>Type:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.nodeType || ''}
-            onChange={(e) => handleChange('nodeType', e.target.value)}
-          />
-        </label>
-      </div>
     </>
   );
 
@@ -208,17 +186,6 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
           />
         </label>
       </div>
-      <div className="mt-2">
-        <label className="block">
-          <strong>Type:</strong>
-          <input
-            type="text"
-            className="w-full p-1 border rounded mt-1"
-            value={editedData.nodeType || ''}
-            onChange={(e) => handleChange('nodeType', e.target.value)}
-          />
-        </label>
-      </div>
     </>
   );
 
@@ -235,19 +202,21 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
     }
     return (
       <>
-        {Object.entries(editedData).map(([key, value]) => (
-          <div key={key} className="mt-2">
-            <label className="block">
-              <strong>{key}:</strong>
-              <input
-                type="text"
-                className="w-full p-1 border rounded mt-1"
-                value={String(value)}
-                onChange={(e) => handleChange(key, e.target.value)}
-              />
-            </label>
-          </div>
-        ))}
+        {Object.entries(editedData)
+          .filter(([key]) => key !== 'nodeType')
+          .map(([key, value]) => (
+            <div key={key} className="mt-2">
+              <label className="block">
+                <strong>{key}:</strong>
+                <input
+                  type="text"
+                  className="w-full p-1 border rounded mt-1"
+                  value={String(value)}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                />
+              </label>
+            </div>
+          ))}
       </>
     );
   };
@@ -259,6 +228,9 @@ const NodeInspector: React.FC<Props> = ({ selectedNode }) => {
         <div className="text-sm">
           <div>
             <strong>ID:</strong> {selectedNode.id}
+          </div>
+          <div className="mt-1">
+            <strong>Type:</strong> {editedData.nodeType || ''}
           </div>
           {renderFields()}
         </div>
