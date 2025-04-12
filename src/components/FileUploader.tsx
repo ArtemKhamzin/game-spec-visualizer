@@ -18,9 +18,11 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
 
   const handleParseClick = async () => {
     if (!file) return;
+
     const formData = new FormData();
     formData.append('file', file);
     setLoading(true);
+
     try {
       const res = await fetch('http://localhost:3001/parser/upload', {
         method: 'POST',
@@ -28,22 +30,20 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
       });
       const json = await res.json();
       const { nodes, edges } = json.data;
-      
+
       const order = ['rule', 'entity', 'event'];
-      
       const groups: { [key: string]: Node[] } = {};
+
       nodes.forEach((n: Node) => {
-        const t = n.type ? (n.type in { rule: true, entity: true, event: true } ? n.type : 'event') : 'event';
-        if (!groups[t]) {
-          groups[t] = [];
-        }
+        const t = typeof n.type === 'string' && ['rule', 'entity', 'event'].includes(n.type) ? n.type : 'event';
+        if (!groups[t]) groups[t] = [];
         groups[t].push(n);
       });
-      
+
       const spacingY = 200;
       const spacingX = 250;
       const positionedNodes: Node[] = [];
-      
+
       order.forEach((type, groupIndex) => {
         const groupNodes = groups[type] || [];
         groupNodes.forEach((node, index) => {
@@ -59,7 +59,7 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
         });
       });
 
-      const withIds = edges.map((e: Edge) => ({
+      const withIds: Edge[] = edges.map((e: Edge) => ({
         ...e,
         id: `e-${e.source}-${e.target}`,
         markerEnd: { type: MarkerType.ArrowClosed },
@@ -69,6 +69,15 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
           edgeType: e.type,
         },
       }));
+
+      withIds.forEach((edge) => {
+        if (edge.data?.edgeType === 'owns-event') {
+          const targetNode = positionedNodes.find((n) => n.id === edge.target);
+          if (targetNode?.data?.nodeType === 'event') {
+            targetNode.data.entityId = edge.source;
+          }
+        }
+      });
 
       onParsed({ nodes: positionedNodes, edges: withIds });
     } catch (err) {
@@ -89,7 +98,9 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
           className="absolute left-0 top-0 w-full h-full opacity-0 cursor-pointer"
         />
       </label>
-      <span className="text-sm text-gray-600">{file ? file.name : "Файл не выбран"}</span>
+      <span className="text-sm text-gray-600">
+        {file ? file.name : "Файл не выбран"}
+      </span>
       <button
         onClick={handleParseClick}
         disabled={!file || loading}
