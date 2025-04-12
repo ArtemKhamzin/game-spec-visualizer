@@ -45,6 +45,7 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode, onDeleteNo
 
   const renderFields = () => {
     const type = editedData.nodeType;
+
     if (type === 'rule') {
       return ['label', 'when', 'effect', 'temporal'].map((key) => (
         <div key={key} className="mt-2">
@@ -62,6 +63,48 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode, onDeleteNo
     }
 
     if (type === 'entity') {
+      const attributes = editedData.attributes || {};
+
+      const handleAttributeEdit = (key: string, field: 'name' | 'value', value: string) => {
+        const updated = { ...attributes };
+        if (field === 'name') {
+          updated[value] = updated[key];
+          delete updated[key];
+        } else {
+          updated[key] = value;
+        }
+        setEditedData((prev: any) => ({
+          ...prev,
+          attributes: updated,
+        }));
+      };
+
+      const handleAddAttribute = () => {
+        const baseKey = 'newAttr';
+        let counter = 1;
+        let newKey = baseKey;
+        while (attributes.hasOwnProperty(newKey)) {
+          newKey = `${baseKey}${counter++}`;
+        }
+
+        setEditedData((prev: any) => ({
+          ...prev,
+          attributes: {
+            ...prev.attributes,
+            [newKey]: '',
+          },
+        }));
+      };
+
+      const handleRemoveAttribute = (key: string) => {
+        const updated = { ...attributes };
+        delete updated[key];
+        setEditedData((prev: any) => ({
+          ...prev,
+          attributes: updated,
+        }));
+      };
+
       return (
         <>
           <div className="mt-2">
@@ -75,24 +118,37 @@ const NodeInspector: React.FC<Props> = ({ selectedNode, onUpdateNode, onDeleteNo
               />
             </label>
           </div>
-          {editedData.attributes && (
-            <div className="mt-2">
-              <strong>Attributes:</strong>
-              {Object.entries(editedData.attributes).map(([attr, val]) => (
-                <div key={attr} className="ml-4 mt-1">
-                  <label className="block">
-                    <strong>{attr}:</strong>
-                    <input
-                      type="text"
-                      className={inputClass}
-                      value={String(val)}
-                      onChange={(e) => handleChange(`attributes.${attr}`, e.target.value)}
-                    />
-                  </label>
-                </div>
-              ))}
+
+          <div className="mt-4 font-semibold">Attributes:</div>
+          {Object.entries(attributes).map(([key, val]) => (
+            <div key={key} className="flex items-center gap-2 mt-2 ml-2">
+              <input
+                type="text"
+                className="w-1/2 p-1 border rounded"
+                value={key}
+                onChange={(e) => handleAttributeEdit(key, 'name', e.target.value)}
+              />
+              <input
+                type="text"
+                className="w-1/2 p-1 border rounded"
+                value={String(val)}
+                onChange={(e) => handleAttributeEdit(key, 'value', e.target.value)}
+              />
+              <button
+                onClick={() => handleRemoveAttribute(key)}
+                className="px-2 text-red-600 hover:text-red-800"
+                title="Удалить"
+              >
+                ✕
+              </button>
             </div>
-          )}
+          ))}
+          <button
+            onClick={handleAddAttribute}
+            className="mt-2 ml-2 px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+          >
+            + Добавить атрибут
+          </button>
         </>
       );
     }
