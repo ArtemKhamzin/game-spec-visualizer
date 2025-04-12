@@ -59,10 +59,42 @@ const EditorPage = () => {
       data,
     };
 
-    setGraph((prev) => ({
-      ...prev,
-      nodes: [...prev.nodes, newNode],
-    }));
+    setGraph((prev) => {
+      const newNodes = [...prev.nodes, newNode];
+      let newEdges = prev.edges;
+      if (data.nodeType === 'event' && data.entityId) {
+        const newEdge: Edge = {
+          id: `e-${data.entityId}-${newNode.id}`,
+          source: data.entityId,
+          target: newNode.id,
+          type: 'customEdge',
+          data: { edgeType: 'owns-event' },
+        };
+        newEdges = [...prev.edges, newEdge];
+      }
+      return { nodes: newNodes, edges: newEdges };
+    });
+  };
+
+  const updateEventEdge = (eventNodeId: string, newEntityId: string) => {
+    setGraph((prev) => {
+      const filteredEdges = prev.edges.filter(
+        (edge) =>
+          !(edge.target === eventNodeId && edge.data && edge.data.edgeType === 'owns-event')
+      );
+      let newEdges = filteredEdges;
+      if (newEntityId && newEntityId.trim() !== '') {
+        const newEdge: Edge = {
+          id: `e-${newEntityId}-${eventNodeId}`,
+          source: newEntityId,
+          target: eventNodeId,
+          type: 'customEdge',
+          data: { edgeType: 'owns-event' },
+        };
+        newEdges = [...filteredEdges, newEdge];
+      }
+      return { ...prev, edges: newEdges };
+    });
   };
 
   const onMouseDown = () => setIsDragging(true);
@@ -90,11 +122,14 @@ const EditorPage = () => {
     };
   }, [isDragging, onMouseMove, onMouseUp]);
 
+  const entityNodes = graph.nodes.filter(
+    (node) => node.data.nodeType === 'entity'
+  );
+
   return (
     <div ref={containerRef} className="flex h-screen w-screen overflow-hidden">
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
-
         <div className="mb-4 flex items-center">
           <FileUploader onParsed={setGraph} />
           <div className="ml-auto flex gap-4">
@@ -129,11 +164,16 @@ const EditorPage = () => {
 
       <div onMouseDown={onMouseDown} className="w-2 cursor-col-resize bg-gray-300" />
 
-      <div style={{ width: inspectorWidth }} className="p-4 border-l overflow-auto h-full flex-shrink-0">
+      <div
+        style={{ width: inspectorWidth }}
+        className="p-4 border-l overflow-auto h-full flex-shrink-0"
+      >
         <NodeInspector
           selectedNode={selectedNode}
           onUpdateNode={updateNodeData}
           onDeleteNode={deleteNode}
+          onUpdateEventEdge={updateEventEdge}
+          entities={entityNodes}
         />
       </div>
 
@@ -142,6 +182,7 @@ const EditorPage = () => {
           nodeType={modalType}
           onClose={() => setModalType(null)}
           onSubmit={handleAddNode}
+          entities={modalType === 'event' ? entityNodes : undefined}
         />
       )}
     </div>
