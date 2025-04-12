@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AddNodeModalProps {
   nodeType: 'rule' | 'entity' | 'event';
@@ -14,7 +15,7 @@ const getInitialData = (nodeType: 'rule' | 'entity' | 'event') => {
     case 'rule':
       return { label: '', when: '', effect: '', temporal: '' };
     case 'entity':
-      return { label: '', attributes: {} };
+      return { label: '', attributes: [{ id: uuidv4(), name: '', value: '' }] };
     case 'event':
       return { label: '', target: '', requires: '', effect: '', probability: '', trigger: '', entityId: '' };
     default:
@@ -36,6 +37,42 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
     }));
   };
 
+  const handleAttributeChange = (id: string, field: 'name' | 'value', value: string) => {
+    const updated = formData.attributes.map((attr: any) =>
+      attr.id === id ? { ...attr, [field]: value } : attr
+    );
+    setFormData((prev: any) => ({ ...prev, attributes: updated }));
+  };
+
+  const addAttribute = () => {
+    setFormData((prev: any) => ({
+      ...prev,
+      attributes: [...prev.attributes, { id: uuidv4(), name: '', value: '' }],
+    }));
+  };
+
+  const removeAttribute = (id: string) => {
+    const updated = formData.attributes.filter((attr: any) => attr.id !== id);
+    setFormData((prev: any) => ({ ...prev, attributes: updated }));
+  };
+
+  const handleSubmit = () => {
+    let output = { ...formData, nodeType };
+
+    if (nodeType === 'entity') {
+      const attributesObject: Record<string, string> = {};
+      formData.attributes.forEach((attr: { name: string; value: string }) => {
+        if (attr.name.trim() !== '') {
+          attributesObject[attr.name] = attr.value;
+        }
+      });
+      output = { ...formData, attributes: attributesObject, nodeType };
+    }
+
+    onSubmit(output);
+    onClose();
+  };
+
   const renderFields = () => {
     if (nodeType === 'entity') {
       return (
@@ -49,50 +86,34 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
               onChange={(e) => handleChange('label', e.target.value)}
             />
           </div>
+
           <div className="mb-2 font-semibold">Attributes:</div>
-          {Object.entries(formData.attributes).map(([key, val]) => (
-            <div key={key} className="flex items-center gap-2 mb-2">
+          {formData.attributes.map((attr: any) => (
+            <div key={attr.id} className="flex items-center gap-2 mb-2">
               <input
                 type="text"
                 placeholder="Name"
                 className="w-1/2 p-1 border rounded"
-                value={key}
-                onChange={(e) => {
-                }}
-                disabled
+                value={attr.name}
+                onChange={(e) => handleAttributeChange(attr.id, 'name', e.target.value)}
               />
               <input
                 type="text"
                 placeholder="Value"
                 className="w-1/2 p-1 border rounded"
-                value={String(val)}
-                onChange={(e) =>
-                  setFormData((prev: any) => ({
-                    ...prev,
-                    attributes: { ...prev.attributes, [key]: e.target.value },
-                  }))
-                }
+                value={attr.value}
+                onChange={(e) => handleAttributeChange(attr.id, 'value', e.target.value)}
               />
               <button
-                onClick={() => {
-                  const updated = { ...formData.attributes };
-                  delete updated[key];
-                  setFormData((prev: any) => ({ ...prev, attributes: updated }));
-                }}
+                onClick={() => removeAttribute(attr.id)}
                 className="px-2 text-red-600 hover:text-red-800"
-                title="Удалить"
               >
                 ✕
               </button>
             </div>
           ))}
           <button
-            onClick={() =>
-              setFormData((prev: any) => ({
-                ...prev,
-                attributes: { ...prev.attributes, [`newAttr${Date.now()}`]: '' },
-              }))
-            }
+            onClick={addAttribute}
             className="px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
           >
             + Добавить атрибут
@@ -119,19 +140,18 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
       return (
         <>
           <div className="mb-3">
-            <label className="block text-sm font-medium">entity:</label>
+            <label className="block text-sm font-medium">Сущность:</label>
             <select
               className="w-full p-1 border rounded"
               value={formData.entityId || ''}
               onChange={(e) => handleChange('entityId', e.target.value)}
             >
               <option value="">Выберите сущность</option>
-              {entities &&
-                entities.map((entity) => (
-                  <option key={entity.id} value={entity.id}>
-                    {entity.data?.label || entity.id}
-                  </option>
-                ))}
+              {entities?.map((entity) => (
+                <option key={entity.id} value={entity.id}>
+                  {entity.data?.label || entity.id}
+                </option>
+              ))}
             </select>
           </div>
           {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((field) => (
@@ -150,11 +170,6 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
     }
 
     return null;
-  };
-
-  const handleSubmit = () => {
-    onSubmit({ ...formData, nodeType });
-    onClose();
   };
 
   return (

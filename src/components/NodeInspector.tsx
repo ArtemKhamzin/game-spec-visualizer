@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Node } from 'reactflow';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
   selectedNode: Node | null;
@@ -10,6 +11,21 @@ interface Props {
   onUpdateEventEdge: (nodeId: string, newEntityId: string) => void;
   entities: any[];
 }
+
+const convertToAttributeArray = (attrs: Record<string, string>): any[] =>
+  Object.entries(attrs).map(([key, value]) => ({
+    id: uuidv4(),
+    name: key,
+    value,
+  }));
+
+const convertToAttributeObject = (attrs: any[]): Record<string, string> => {
+  const result: Record<string, string> = {};
+  for (const attr of attrs) {
+    if (attr.name.trim()) result[attr.name] = attr.value;
+  }
+  return result;
+};
 
 const NodeInspector: React.FC<Props> = ({
   selectedNode,
@@ -22,108 +38,100 @@ const NodeInspector: React.FC<Props> = ({
 
   useEffect(() => {
     if (selectedNode) {
-      setEditedData(selectedNode.data);
+      const data = { ...selectedNode.data };
+      if (data.nodeType === 'entity') {
+        const raw = data.attributes || {};
+        data.attributes = Array.isArray(raw) ? raw : convertToAttributeArray(raw);
+      }
+      setEditedData(data);
     }
   }, [selectedNode]);
 
   useEffect(() => {
     if (selectedNode) {
-      onUpdateNode(selectedNode.id, editedData);
+      const dataToSend = { ...editedData };
+      if (dataToSend.nodeType === 'entity' && Array.isArray(dataToSend.attributes)) {
+        dataToSend.attributes = convertToAttributeObject(dataToSend.attributes);
+      }
+      onUpdateNode(selectedNode.id, dataToSend);
     }
   }, [editedData]);
 
   const handleChange = (key: string, value: string) => {
-    setEditedData((prev: any) => {
-      if (key.includes('.')) {
-        const keys = key.split('.');
-        return {
-          ...prev,
-          [keys[0]]: {
-            ...prev[keys[0]],
-            [keys[1]]: value,
-          },
-        };
-      } else {
-        return { ...prev, [key]: value };
-      }
-    });
+    setEditedData((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  const handleAttrChange = (id: string, field: 'name' | 'value', value: string) => {
+    const updated = editedData.attributes.map((attr: any) =>
+      attr.id === id ? { ...attr, [field]: value } : attr
+    );
+    setEditedData((prev: any) => ({ ...prev, attributes: updated }));
+  };
+
+  const addAttribute = () => {
+    const newAttr = { id: uuidv4(), name: '', value: '' };
+    setEditedData((prev: any) => ({
+      ...prev,
+      attributes: [...(prev.attributes || []), newAttr],
+    }));
+  };
+
+  const removeAttribute = (id: string) => {
+    const updated = editedData.attributes.filter((attr: any) => attr.id !== id);
+    setEditedData((prev: any) => ({ ...prev, attributes: updated }));
   };
 
   const inputClass = 'w-full p-1 border rounded mt-1';
 
-  const renderEntityFields = () => {
-    const attributes = editedData.attributes || {};
-    return (
-      <>
-        <div className="mt-2">
-          <label className="block">
-            <strong>Label:</strong>
-            <input
-              type="text"
-              className={inputClass}
-              value={editedData.label || ''}
-              onChange={(e) => handleChange('label', e.target.value)}
-            />
-          </label>
+  const renderEntityFields = () => (
+    <>
+      <div className="mt-2">
+        <label className="block font-medium">Label:</label>
+        <input
+          type="text"
+          className={inputClass}
+          value={editedData.label || ''}
+          onChange={(e) => handleChange('label', e.target.value)}
+        />
+      </div>
+
+      <div className="mt-4 font-semibold">Attributes:</div>
+      {editedData.attributes?.map((attr: any) => (
+        <div key={attr.id} className="flex items-center gap-2 mt-2 ml-2">
+          <input
+            type="text"
+            className="w-1/2 p-1 border rounded"
+            value={attr.name}
+            onChange={(e) => handleAttrChange(attr.id, 'name', e.target.value)}
+          />
+          <input
+            type="text"
+            className="w-1/2 p-1 border rounded"
+            value={attr.value}
+            onChange={(e) => handleAttrChange(attr.id, 'value', e.target.value)}
+          />
+          <button
+            onClick={() => removeAttribute(attr.id)}
+            className="px-2 text-red-600 hover:text-red-800"
+            title="Удалить"
+          >
+            ✕
+          </button>
         </div>
-        <div className="mt-4 font-semibold">Attributes:</div>
-        {Object.entries(attributes).map(([attr, val]) => (
-          <div key={attr} className="flex items-center gap-2 mt-2 ml-2">
-            <input
-              type="text"
-              className="w-1/2 p-1 border rounded"
-              value={attr}
-              onChange={(e) => {
-              }}
-              disabled
-            />
-            <input
-              type="text"
-              className={inputClass}
-              value={String(val)}
-              onChange={(e) => handleChange(`attributes.${attr}`, e.target.value)}
-            />
-            <button
-              onClick={() => {
-                const updated = { ...attributes };
-                delete updated[attr];
-                setEditedData((prev: any) => ({
-                  ...prev,
-                  attributes: updated,
-                }));
-              }}
-              className="px-2 text-red-600 hover:text-red-800"
-              title="Удалить"
-            >
-              ✕
-            </button>
-          </div>
-        ))}
-        <button
-          onClick={() => {
-            const baseKey = 'newAttr';
-            let counter = 1;
-            let newKey = baseKey;
-            while (attributes.hasOwnProperty(newKey)) {
-              newKey = `${baseKey}${counter++}`;
-            }
-            setEditedData((prev: any) => ({
-              ...prev,
-              attributes: { ...prev.attributes, [newKey]: '' },
-            }));
-          }}
-          className="mt-2 ml-2 px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
-        >
-          + Добавить атрибут
-        </button>
-      </>
-    );
-  };
+      ))}
+      <button
+        onClick={addAttribute}
+        className="mt-2 ml-2 px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+      >
+        + Добавить атрибут
+      </button>
+    </>
+  );
 
   const renderEventFields = () => (
     <>
       <div className="mt-2">
-        <strong>Entity:</strong>
+        <label className="block font-medium">Сущность:</label>
         <select
           className="w-full p-1 border rounded"
           value={editedData.entityId || ''}
@@ -143,15 +151,13 @@ const NodeInspector: React.FC<Props> = ({
       </div>
       {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
         <div key={key} className="mt-2">
-          <label className="block">
-            <strong>{key[0].toUpperCase() + key.slice(1)}:</strong>
-            <input
-              type="text"
-              className={inputClass}
-              value={editedData[key] || ''}
-              onChange={(e) => handleChange(key, e.target.value)}
-            />
-          </label>
+          <label className="block font-medium">{key}:</label>
+          <input
+            type="text"
+            className={inputClass}
+            value={editedData[key] || ''}
+            onChange={(e) => handleChange(key, e.target.value)}
+          />
         </div>
       ))}
     </>
@@ -161,15 +167,13 @@ const NodeInspector: React.FC<Props> = ({
     <>
       {['label', 'when', 'effect', 'temporal'].map((key) => (
         <div key={key} className="mt-2">
-          <label className="block">
-            <strong>{key[0].toUpperCase() + key.slice(1)}:</strong>
-            <input
-              type="text"
-              className={inputClass}
-              value={editedData[key] || ''}
-              onChange={(e) => handleChange(key, e.target.value)}
-            />
-          </label>
+          <label className="block font-medium">{key}:</label>
+          <input
+            type="text"
+            className={inputClass}
+            value={editedData[key] || ''}
+            onChange={(e) => handleChange(key, e.target.value)}
+          />
         </div>
       ))}
     </>
