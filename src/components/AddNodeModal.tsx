@@ -78,7 +78,7 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
       return (
         <>
           <div className="mb-3">
-            <label className="block text-sm font-medium">Label:</label>
+            <strong>Label:</strong>
             <input
               type="text"
               className="w-full p-1 border rounded"
@@ -125,7 +125,7 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
     if (nodeType === 'rule') {
       return ['label', 'when', 'effect', 'temporal'].map((field) => (
         <div key={field} className="mb-3">
-          <label className="block text-sm font-medium">{field}:</label>
+          <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong> 
           <input
             type="text"
             className="w-full p-1 border rounded"
@@ -140,7 +140,7 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
       return (
         <>
           <div className="mb-3">
-            <label className="block text-sm font-medium">Сущность:</label>
+            <strong>Entity:</strong>
             <select
               className="w-full p-1 border rounded"
               value={formData.entityId || ''}
@@ -156,7 +156,7 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
           </div>
           {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((field) => (
             <div key={field} className="mb-3">
-              <label className="block text-sm font-medium">{field}:</label>
+              <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong>
               <input
                 type="text"
                 className="w-full p-1 border rounded"

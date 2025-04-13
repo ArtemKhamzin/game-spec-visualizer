@@ -86,7 +86,7 @@ const NodeInspector: React.FC<Props> = ({
   const renderEntityFields = () => (
     <>
       <div className="mt-2">
-        <label className="block font-medium">Label:</label>
+        <strong>Label:</strong>
         <input
           type="text"
           className={inputClass}
@@ -131,7 +131,7 @@ const NodeInspector: React.FC<Props> = ({
   const renderEventFields = () => (
     <>
       <div className="mt-2">
-        <label className="block font-medium">Сущность:</label>
+        <strong>Entity:</strong>
         <select
           className="w-full p-1 border rounded"
           value={editedData.entityId || ''}
@@ -151,7 +151,7 @@ const NodeInspector: React.FC<Props> = ({
       </div>
       {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
         <div key={key} className="mt-2">
-          <label className="block font-medium">{key}:</label>
+          <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
             type="text"
             className={inputClass}
@@ -167,7 +167,7 @@ const NodeInspector: React.FC<Props> = ({
     <>
       {['label', 'when', 'effect', 'temporal'].map((key) => (
         <div key={key} className="mt-2">
-          <label className="block font-medium">{key}:</label>
+          <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
             type="text"
             className={inputClass}
