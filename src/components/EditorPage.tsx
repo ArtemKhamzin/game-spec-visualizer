@@ -85,6 +85,19 @@ const EditorPage = () => {
           }));
         newEdges = [...newEdges, ...ruleEdges];
       }
+
+      if (data.nodeType === 'entity') {
+        const entityEdges: Edge[] = prev.nodes
+          .filter((n) => n.data.nodeType === 'rule')
+          .map((ruleNode) => ({
+            id: `e-${ruleNode.id}-${newNode.id}`,
+            source: ruleNode.id,
+            target: newNode.id,
+            type: 'customEdge',
+            data: { edgeType: 'rule-effect' },
+          }));
+        newEdges = [...newEdges, ...entityEdges];
+      }
       
       return { nodes: newNodes, edges: newEdges };
     });
