@@ -88,7 +88,7 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
   };
 
   return (
-    <div className="mb-4 flex items-center gap-4">
+    <div className="flex items-center gap-4">
       <label className="relative cursor-pointer inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
         Выбрать файл
         <input

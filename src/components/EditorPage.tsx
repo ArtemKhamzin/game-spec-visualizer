@@ -157,8 +157,18 @@ const EditorPage = () => {
     <div ref={containerRef} className="flex h-screen w-screen overflow-hidden">
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
-        <div className="mb-4 flex items-center">
+        <div className="mb-4 flex items-center gap-4">
           <FileUploader onParsed={setGraph} />
+          <button
+            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+            onClick={() => {
+              setGraph({ nodes: [], edges: [] });
+              setSelectedNode(null);
+            }}
+          >
+            Очистить все
+          </button>
+          
           <div className="ml-auto flex gap-4">
             <button
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
