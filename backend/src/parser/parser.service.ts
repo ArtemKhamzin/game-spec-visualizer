@@ -55,21 +55,18 @@ export class ParserService {
         while (index < lines.length && lines[index] !== '}') {
           const inner = clean(lines[index]);
 
-          // --- State block
           if (inner.startsWith('State')) {
             index++;
             while (index < lines.length && lines[index] !== '}') {
-              const stateLine = clean(lines[index]);
-              const [key, ...rest] = stateLine.split(':');
+              const [key, ...rest] = clean(lines[index]).split(':');
               if (key && rest.length > 0) {
                 entityNode.data.attributes[key.trim()] = rest.join(':').trim();
               }
               index++;
             }
-            index++; // skip }
+            index++;
           }
 
-          // --- Event block
           else if (inner.startsWith('Event')) {
             const eventName = inner.split(/\s+/)[1];
             const eventId = nextId();
@@ -104,27 +101,15 @@ export class ParserService {
               }
               index++;
             }
-            index++; // skip }
+            index++;
 
             nodes.push(eventNode);
-
-            // owns-event
             edges.push({ source: entityId, target: eventId, type: 'owns-event' });
-
-            // target → entity
-            if (eventNode.data.target && entityMap[eventNode.data.target]) {
-              edges.push({
-                source: eventId,
-                target: entityMap[eventNode.data.target],
-                type: 'target'
-              });
-            }
           } else {
             index++;
           }
         }
-
-        index++; // skip entity }
+        index++;
       }
 
       // === RULE ===
@@ -158,10 +143,8 @@ export class ParserService {
           }
           index++;
         }
-        index++; // skip }
+        index++;
         nodes.push(ruleNode);
-
-        // rule-effect
         for (const entId of Object.values(entityMap)) {
           edges.push({ source: ruleId, target: entId, type: 'rule-effect' });
         }
@@ -174,15 +157,24 @@ export class ParserService {
 
     // === TRIGGERS ===
     for (const node of nodes) {
-      if (node.type === 'event' && node.data.trigger) {
-        const triggerKey = node.data.trigger.includes('.')
-          ? node.data.trigger
-          : `Player.${node.data.trigger}`;
-        if (eventMap[triggerKey]) {
+      if (node.type === 'event') {
+        if (node.data.trigger) {
+          const key = node.data.trigger.includes('.') ? node.data.trigger : `Player.${node.data.trigger}`;
+          const sourceId = eventMap[key];
+          if (sourceId) {
+            edges.push({
+              source: sourceId,
+              target: node.id,
+              type: 'trigger'
+            });
+          }
+        }
+
+        if (node.data.target && entityMap[node.data.target]) {
           edges.push({
-            source: eventMap[triggerKey],
-            target: node.id,
-            type: 'trigger'
+            source: node.id,
+            target: entityMap[node.data.target],
+            type: 'target'
           });
         }
       }
