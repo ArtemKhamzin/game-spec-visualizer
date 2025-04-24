@@ -9,7 +9,9 @@ interface Props {
   onUpdateNode: (nodeId: string, newData: any) => void;
   onDeleteNode: (nodeId: string) => void;
   onUpdateEventEdge: (nodeId: string, newEntityId: string) => void;
+  onUpdateTargetEdge: (nodeId: string, newTargetId: string) => void;
   entities: any[];
+  edges: any[];
 }
 
 const convertToAttributeArray = (attrs: Record<string, string>): any[] =>
@@ -32,17 +34,39 @@ const NodeInspector: React.FC<Props> = ({
   onUpdateNode,
   onDeleteNode,
   onUpdateEventEdge,
+  onUpdateTargetEdge,
   entities,
+  edges
 }) => {
   const [editedData, setEditedData] = useState<any>({});
 
   useEffect(() => {
     if (selectedNode) {
       const data = { ...selectedNode.data };
+  
       if (data.nodeType === 'entity') {
         const raw = data.attributes || {};
         data.attributes = Array.isArray(raw) ? raw : convertToAttributeArray(raw);
       }
+  
+      if (data.nodeType === 'event' && !data.entityId) {
+        const ownsEdge = edges.find(
+          (e) => e.target === selectedNode.id && e.data?.edgeType === 'owns-event'
+        );
+        if (ownsEdge) {
+          data.entityId = ownsEdge.source;
+        }
+      }
+  
+      if (data.nodeType === 'event') {
+        const targetEdge = edges.find(
+          (e) => e.source === selectedNode.id && e.data?.edgeType === 'target'
+        );
+        if (targetEdge) {
+          data.target = targetEdge.target;
+        }
+      }
+  
       setEditedData(data);
     }
   }, [selectedNode]);
@@ -149,7 +173,28 @@ const NodeInspector: React.FC<Props> = ({
           ))}
         </select>
       </div>
-      {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
+  
+      <div className="mt-2">
+        <strong>Target:</strong>
+        <select
+          className="w-full p-1 border rounded"
+          value={editedData.target || ''}
+          onChange={(e) => {
+            const newVal = e.target.value;
+            handleChange('target', newVal);
+            onUpdateTargetEdge(selectedNode!.id, newVal);
+          }}
+        >
+          <option value="">Выберите цель</option>
+          {entities.map((entity) => (
+            <option key={entity.id} value={entity.id}>
+              {entity.data?.label || entity.id}
+            </option>
+          ))}
+        </select>
+      </div>
+  
+      {['label', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
         <div key={key} className="mt-2">
           <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input

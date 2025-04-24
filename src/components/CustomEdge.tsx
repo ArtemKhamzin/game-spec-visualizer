@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from 'reactflow';
+import { BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps, Position } from 'reactflow';
 
 interface CustomEdgeProps extends EdgeProps {
 }
@@ -31,7 +31,14 @@ const CustomEdge: React.FC<CustomEdgeProps> = ({
   data,
 }) => {
   const edgeType = data?.edgeType;
-  const [edgePath, labelX, labelY] = getBezierPath({ sourceX, sourceY, targetX, targetY });
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    sourcePosition: edgeType === 'target' ? Position.Bottom : undefined,
+    targetPosition: edgeType === 'target' ? Position.Top : undefined,
+  });
   const style = getEdgeStyle(edgeType);
 
   return (

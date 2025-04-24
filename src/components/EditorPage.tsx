@@ -98,6 +98,17 @@ const EditorPage = () => {
           }));
         newEdges = [...newEdges, ...entityEdges];
       }
+
+      if (data.nodeType === 'event' && data.target) {
+        const targetEdge: Edge = {
+          id: `e-${id}-${data.target}`,
+          source: id,
+          target: data.target,
+          type: 'customEdge',
+          data: { edgeType: 'target' },
+        };
+        newEdges.push(targetEdge);
+      }
       
       return { nodes: newNodes, edges: newEdges };
     });
@@ -123,6 +134,28 @@ const EditorPage = () => {
       return { ...prev, edges: newEdges };
     });
   };
+
+  const updateTargetEdge = (eventNodeId: string, newTargetId: string) => {
+    setGraph((prev) => {
+      const filteredEdges = prev.edges.filter(
+        (edge) =>
+          !(edge.source === eventNodeId && edge.data?.edgeType === 'target')
+      );
+  
+      const newEdge: Edge = {
+        id: `e-${eventNodeId}-${newTargetId}`,
+        source: eventNodeId,
+        target: newTargetId,
+        type: 'customEdge',
+        data: { edgeType: 'target' },
+      };
+  
+      return {
+        ...prev,
+        edges: [...filteredEdges, newEdge],
+      };
+    });
+  };  
 
   const onMouseDown = () => setIsDragging(true);
 
@@ -210,7 +243,9 @@ const EditorPage = () => {
           onUpdateNode={updateNodeData}
           onDeleteNode={deleteNode}
           onUpdateEventEdge={updateEventEdge}
+          onUpdateTargetEdge={updateTargetEdge}
           entities={entityNodes}
+          edges={graph.edges}
         />
       </div>
 

@@ -154,7 +154,24 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
               ))}
             </select>
           </div>
-          {['label', 'target', 'requires', 'effect', 'probability', 'trigger'].map((field) => (
+    
+          <div className="mb-3">
+            <strong>Target:</strong>
+            <select
+              className="w-full p-1 border rounded"
+              value={formData.target || ''}
+              onChange={(e) => handleChange('target', e.target.value)}
+            >
+              <option value="">Выберите цель</option>
+              {entities?.map((entity) => (
+                <option key={entity.id} value={entity.id}>
+                  {entity.data?.label || entity.id}
+                </option>
+              ))}
+            </select>
+          </div>
+    
+          {['label', 'requires', 'effect', 'probability', 'trigger'].map((field) => (
             <div key={field} className="mb-3">
               <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong>
               <input
