@@ -166,6 +166,16 @@ const NodeInspector: React.FC<Props> = ({
   const renderEventFields = () => (
     <>
       <div className="mt-2">
+        <strong>Label:</strong>
+        <input
+          type="text"
+          className={inputClass}
+          value={editedData.label || ''}
+          onChange={(e) => handleChange('label', e.target.value)}
+        />
+      </div>
+  
+      <div className="mt-2">
         <strong>Entity:</strong>
         <select
           className="w-full p-1 border rounded"
@@ -227,7 +237,7 @@ const NodeInspector: React.FC<Props> = ({
         </select>
       </div>
   
-      {['label', 'requires', 'effect', 'probability'].map((key) => (
+      {['requires', 'effect', 'probability'].map((key) => (
         <div key={key} className="mt-2">
           <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
