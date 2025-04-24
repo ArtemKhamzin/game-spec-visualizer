@@ -8,6 +8,7 @@ interface AddNodeModalProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
   entities?: any[];
+  events?: any[];
 }
 
 const getInitialData = (nodeType: 'rule' | 'entity' | 'event') => {
@@ -23,7 +24,7 @@ const getInitialData = (nodeType: 'rule' | 'entity' | 'event') => {
   }
 };
 
-const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit, entities }) => {
+const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit, entities, events }) => {
   const [formData, setFormData] = useState<any>(getInitialData(nodeType));
 
   useEffect(() => {
@@ -170,8 +171,24 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
               ))}
             </select>
           </div>
-    
-          {['label', 'requires', 'effect', 'probability', 'trigger'].map((field) => (
+
+          <div className="mb-3">
+            <strong>Trigger:</strong>
+            <select
+              className="w-full p-1 border rounded"
+              value={formData.trigger || ''}
+              onChange={(e) => handleChange('trigger', e.target.value)}
+            >
+              <option value="">Выберите событие</option>
+              {events?.map((eventNode) => (
+                <option key={eventNode.id} value={eventNode.id}>
+                  {eventNode.data?.label || eventNode.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {['label', 'requires', 'effect', 'probability'].map((field) => (
             <div key={field} className="mb-3">
               <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong>
               <input

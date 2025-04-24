@@ -109,6 +109,17 @@ const EditorPage = () => {
         };
         newEdges.push(targetEdge);
       }
+
+      if (data.nodeType === 'event' && data.trigger) {
+        const triggerEdge: Edge = {
+          id: `e-${data.trigger}-${id}`,
+          source: data.trigger,
+          target: id,
+          type: 'customEdge',
+          data: { edgeType: 'trigger' },
+        };
+        newEdges.push(triggerEdge);
+      }
       
       return { nodes: newNodes, edges: newEdges };
     });
@@ -157,6 +168,28 @@ const EditorPage = () => {
     });
   };  
 
+  const updateTriggerEdge = (eventNodeId: string, newTriggerSourceId: string) => {
+    setGraph((prev) => {
+      const filteredEdges = prev.edges.filter(
+        (edge) =>
+          !(edge.target === eventNodeId && edge.data?.edgeType === 'trigger')
+      );
+  
+      const newEdge: Edge = {
+        id: `e-${newTriggerSourceId}-${eventNodeId}`,
+        source: newTriggerSourceId,
+        target: eventNodeId,
+        type: 'customEdge',
+        data: { edgeType: 'trigger' },
+      };
+  
+      return {
+        ...prev,
+        edges: [...filteredEdges, newEdge],
+      };
+    });
+  };  
+
   const onMouseDown = () => setIsDragging(true);
 
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -184,6 +217,10 @@ const EditorPage = () => {
 
   const entityNodes = graph.nodes.filter(
     (node) => node.data.nodeType === 'entity'
+  );
+
+  const eventNodes = graph.nodes.filter(
+    (node) => node.data.nodeType === 'event'
   );
 
   return (
@@ -244,6 +281,8 @@ const EditorPage = () => {
           onDeleteNode={deleteNode}
           onUpdateEventEdge={updateEventEdge}
           onUpdateTargetEdge={updateTargetEdge}
+          onUpdateTriggerEdge={updateTriggerEdge}
+          events={eventNodes}
           entities={entityNodes}
           edges={graph.edges}
         />
@@ -255,6 +294,7 @@ const EditorPage = () => {
           onClose={() => setModalType(null)}
           onSubmit={handleAddNode}
           entities={modalType === 'event' ? entityNodes : undefined}
+          events={modalType === 'event' ? eventNodes : undefined}
         />
       )}
     </div>

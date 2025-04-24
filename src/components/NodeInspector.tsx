@@ -10,6 +10,8 @@ interface Props {
   onDeleteNode: (nodeId: string) => void;
   onUpdateEventEdge: (nodeId: string, newEntityId: string) => void;
   onUpdateTargetEdge: (nodeId: string, newTargetId: string) => void;
+  onUpdateTriggerEdge: (nodeId: string, newTriggerSourceId: string) => void;
+  events: Node[];
   entities: any[];
   edges: any[];
 }
@@ -35,6 +37,8 @@ const NodeInspector: React.FC<Props> = ({
   onDeleteNode,
   onUpdateEventEdge,
   onUpdateTargetEdge,
+  onUpdateTriggerEdge,
+  events,
   entities,
   edges
 }) => {
@@ -64,6 +68,13 @@ const NodeInspector: React.FC<Props> = ({
         );
         if (targetEdge) {
           data.target = targetEdge.target;
+        }
+
+        const triggerEdge = edges.find(
+          (e) => e.target === selectedNode.id && e.data?.edgeType === 'trigger'
+        );
+        if (triggerEdge) {
+          data.trigger = triggerEdge.source;
         }
       }
   
@@ -193,8 +204,30 @@ const NodeInspector: React.FC<Props> = ({
           ))}
         </select>
       </div>
+
+      <div className="mt-2">
+        <strong>Trigger:</strong>
+        <select
+          className="w-full p-1 border rounded"
+          value={editedData.trigger || ''}
+          onChange={(e) => {
+            const newVal = e.target.value;
+            handleChange('trigger', newVal);
+            onUpdateTriggerEdge(selectedNode!.id, newVal);
+          }}
+        >
+          <option value="">Выберите событие</option>
+          {events
+            .filter((ev) => ev.id !== selectedNode?.id)
+            .map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.data?.label || ev.id}
+              </option>
+            ))}
+        </select>
+      </div>
   
-      {['label', 'requires', 'effect', 'probability', 'trigger'].map((key) => (
+      {['label', 'requires', 'effect', 'probability'].map((key) => (
         <div key={key} className="mt-2">
           <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
