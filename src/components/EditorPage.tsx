@@ -6,6 +6,7 @@ import FileUploader from './FileUploader';
 import GraphCanvas from './GraphCanvas';
 import NodeInspector from './NodeInspector';
 import AddNodeModal from './AddNodeModal';
+import { graphToSpec } from '@/../backend/src/exporters/generateSpec';
 
 let idCounter = 1;
 
@@ -46,6 +47,22 @@ const EditorPage = () => {
     if (selectedNode && selectedNode.id === nodeId) {
       setSelectedNode(null);
     }
+  };
+
+  const handleExportSpec = () => {
+    console.log('nodes', graph.nodes);
+    console.log('edges', graph.edges);
+  
+    const spec = graphToSpec(graph.nodes, graph.edges);
+    console.log('spec output:', spec);
+  
+    const blob = new Blob([spec], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'graph-export.spec';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleAddNode = (data: any) => {
@@ -237,6 +254,13 @@ const EditorPage = () => {
             }}
           >
             Очистить все
+          </button>
+
+          <button
+            onClick={handleExportSpec}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          >
+            Экспорт в .spec
           </button>
           
           <div className="ml-auto flex gap-4">
