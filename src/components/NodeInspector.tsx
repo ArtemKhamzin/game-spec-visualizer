@@ -11,6 +11,7 @@ interface Props {
   onUpdateEventEdge: (nodeId: string, newEntityId: string) => void;
   onUpdateTargetEdge: (nodeId: string, newTargetId: string) => void;
   onUpdateTriggerEdge: (nodeId: string, newTriggerSourceId: string) => void;
+  onSelectNode: (nodeId: string) => void;
   events: Node[];
   entities: any[];
   edges: any[];
@@ -38,6 +39,7 @@ const NodeInspector: React.FC<Props> = ({
   onUpdateEventEdge,
   onUpdateTargetEdge,
   onUpdateTriggerEdge,
+  onSelectNode,
   events,
   entities,
   edges
@@ -175,7 +177,11 @@ const NodeInspector: React.FC<Props> = ({
                 )
               )
               .map((event) => (
-                <li key={event.id}>
+                <li
+                  key={event.id}
+                  className="cursor-pointer text-blue-600 hover:underline"
+                  onClick={() => onSelectNode(event.id)}
+                >
                   {event.data?.label || event.id}
                 </li>
               ))}

@@ -207,6 +207,11 @@ const EditorPage = () => {
     });
   };  
 
+  const selectNodeById = (id: string) => {
+    const node = graph.nodes.find((n) => n.id === id);
+    if (node) setSelectedNode(node);
+  };
+
   const onMouseDown = () => setIsDragging(true);
 
   const onMouseMove = useCallback((e: MouseEvent) => {
@@ -306,6 +311,7 @@ const EditorPage = () => {
           onUpdateEventEdge={updateEventEdge}
           onUpdateTargetEdge={updateTargetEdge}
           onUpdateTriggerEdge={updateTriggerEdge}
+          onSelectNode={selectNodeById}
           events={eventNodes}
           entities={entityNodes}
           edges={graph.edges}
