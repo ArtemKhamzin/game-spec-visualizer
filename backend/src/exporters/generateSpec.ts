@@ -61,18 +61,8 @@ ${eventsText}
     const lines: string[] = [];
     lines.push(`    Event ${ev.data.label} {`);
 
-    if (ev.data.requires)    lines.push(`        Requires: ${ev.data.requires}`);
-    if (ev.data.effect)      lines.push(`        Effect: ${ev.data.effect}`);
-
-    if (ev.data.probability) {
-      ev.data.probability
-        .split(/\r?\n/)
-        .map(l => l.trim())
-        .filter(Boolean)
-        .forEach(p => {
-          if (p.startsWith('P[')) lines.push(`        ${p}`);
-          else                    lines.push(`        P[${p}]`);
-        });
+    if (ev.data.requires) {
+      lines.push(`        Requires: ${ev.data.requires}`);
     }
 
     outgoing(ev.id, 'target').forEach(e => {
@@ -84,6 +74,24 @@ ${eventsText}
       const src = nodes.find(n => n.id === e.source);
       if (src) lines.push(`        Trigger: ${src.data.label}`);
     });
+
+    if (ev.data.effect) {
+      lines.push(`        Effect: ${ev.data.effect}`);
+    }
+
+    if (ev.data.probability) {
+      ev.data.probability
+        .split('#end#')
+        .map(p => p.trim())
+        .filter(Boolean)
+        .forEach(p => {
+          if (/^P\[.*\]/.test(p)) {
+            lines.push(`        ${p}`);
+          } else {
+            lines.push(`        P[${p}]`);
+          }
+        });
+    }
 
     lines.push(`    }`);
     return lines.join('\n');
@@ -97,8 +105,8 @@ ${eventsText}
 
     if (r.data.temporal) {
       r.data.temporal
-        .split(/\r?\n/)
-        .map(l => l.trim())
+        .split('#end#')
+        .map(t => t.trim())
         .filter(Boolean)
         .forEach(t => lines.push(`    ${t}`));
     }
