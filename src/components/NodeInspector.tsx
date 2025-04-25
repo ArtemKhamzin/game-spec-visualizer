@@ -160,6 +160,28 @@ const NodeInspector: React.FC<Props> = ({
       >
         + Добавить атрибут
       </button>
+
+      {events && (
+        <div className="mt-6">
+          <strong className="block mb-2">Events:</strong>
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {events
+              .filter((event) =>
+                edges.some(
+                  (e) =>
+                    e.source === selectedNode?.id &&
+                    e.target === event.id &&
+                    e.data?.edgeType === 'owns-event'
+                )
+              )
+              .map((event) => (
+                <li key={event.id}>
+                  {event.data?.label || event.id}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 
@@ -277,7 +299,9 @@ const NodeInspector: React.FC<Props> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-2">Свойства узла</h2>
+      <h2 className="text-lg font-bold mb-2">
+        Свойства узла {selectedNode?.data?.label && `«${selectedNode.data.label}»`}
+      </h2>
       {selectedNode ? (
         <div className="text-sm">
           <div>
