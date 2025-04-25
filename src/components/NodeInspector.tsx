@@ -79,6 +79,13 @@ const NodeInspector: React.FC<Props> = ({
           data.trigger = triggerEdge.source;
         }
       }
+
+      if (data.nodeType === 'rule' && typeof data.temporal === 'string') {
+        data.temporal = data.temporal
+          .split('#end#')
+          .map((v: string) => ({ id: uuidv4(), value: v.trim() }))
+          .filter((t: { id: string; value: string }) => t.value !== '');
+      }
   
       setEditedData(data);
     }
@@ -90,6 +97,11 @@ const NodeInspector: React.FC<Props> = ({
       if (dataToSend.nodeType === 'entity' && Array.isArray(dataToSend.attributes)) {
         dataToSend.attributes = convertToAttributeObject(dataToSend.attributes);
       }
+
+      if (editedData.nodeType === 'rule' && Array.isArray(editedData.temporal)) {
+        dataToSend.temporal = editedData.temporal.map((t: any) => t.value).join('#end#');
+      }
+      
       onUpdateNode(selectedNode.id, dataToSend);
     }
   }, [editedData]);
@@ -179,7 +191,7 @@ const NodeInspector: React.FC<Props> = ({
               .map((event) => (
                 <li
                   key={event.id}
-                  className="cursor-pointer text-blue-600 hover:underline"
+                  className="cursor-pointer text-black hover:underline"
                   onClick={() => onSelectNode(event.id)}
                 >
                   {event.data?.label || event.id}
@@ -281,7 +293,7 @@ const NodeInspector: React.FC<Props> = ({
 
   const renderRuleFields = () => (
     <>
-      {['label', 'when', 'effect', 'temporal'].map((key) => (
+      {['label', 'when', 'effect'].map((key) => (
         <div key={key} className="mt-2">
           <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
@@ -292,6 +304,48 @@ const NodeInspector: React.FC<Props> = ({
           />
         </div>
       ))}
+  
+      <div className="mt-4 font-semibold">Temporal:</div>
+      {(editedData.temporal || []).map((entry: { id: string; value: string }) => (
+        <div key={entry.id} className="flex items-center gap-2 mt-2 ml-2">
+          <input
+            type="text"
+            className="w-full p-1 border rounded"
+            value={entry.value}
+            onChange={(e) => {
+              const newList = editedData.temporal.map((t: { id: string; value: string }) =>
+                t.id === entry.id ? { ...t, value: e.target.value } : t
+              );
+              setEditedData((prev: any) => ({ ...prev, temporal: newList }));
+            }}
+          />
+          <button
+            onClick={() => {
+              const newList = editedData.temporal.filter(
+                (t: { id: string }) => t.id !== entry.id
+              );
+              setEditedData((prev: any) => ({ ...prev, temporal: newList }));
+            }}
+            className="px-2 text-red-600 hover:text-red-800"
+            title="Удалить"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+  
+      <button
+        onClick={() => {
+          const newEntry = { id: uuidv4(), value: '' };
+          setEditedData((prev: any) => ({
+            ...prev,
+            temporal: [...(prev.temporal || []), newEntry],
+          }));
+        }}
+        className="mt-2 ml-2 px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+      >
+        + Добавить Temporal
+      </button>
     </>
   );
 

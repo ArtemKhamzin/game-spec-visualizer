@@ -14,7 +14,7 @@ interface AddNodeModalProps {
 const getInitialData = (nodeType: 'rule' | 'entity' | 'event') => {
   switch (nodeType) {
     case 'rule':
-      return { label: '', when: '', effect: '', temporal: '' };
+      return { label: '', when: '', effect: '', temporal: [{ id: uuidv4(), value: '' }] };
     case 'entity':
       return { label: '', attributes: [{ id: uuidv4(), name: '', value: '' }] };
     case 'event':
@@ -68,6 +68,13 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
         }
       });
       output = { ...formData, attributes: attributesObject, nodeType };
+    }
+
+    if (nodeType === 'rule') {
+      output.temporal = formData.temporal
+        .map((t: { value: string }) => t.value.trim())
+        .filter((v: string) => v !== '')
+        .join('#end#');
     }
 
     onSubmit(output);
@@ -124,17 +131,62 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
     }
 
     if (nodeType === 'rule') {
-      return ['label', 'when', 'effect', 'temporal'].map((field) => (
-        <div key={field} className="mb-3">
-          <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong> 
-          <input
-            type="text"
-            className="w-full p-1 border rounded"
-            value={formData[field]}
-            onChange={(e) => handleChange(field, e.target.value)}
-          />
-        </div>
-      ));
+      return (
+        <>
+          {['label', 'when', 'effect'].map((field) => (
+            <div key={field} className="mb-3">
+              <strong className="block mb-1">
+                {field.charAt(0).toUpperCase() + field.slice(1)}:
+              </strong>
+              <input
+                type="text"
+                className="w-full p-1 border rounded"
+                value={formData[field]}
+                onChange={(e) => handleChange(field, e.target.value)}
+              />
+            </div>
+          ))}
+    
+          <div className="mb-2 font-semibold">Temporal:</div>
+          {formData.temporal.map((t: any, index: number) => (
+            <div key={t.id} className="flex items-center gap-2 mb-2">
+              <input
+                type="text"
+                placeholder={`Temporal ${index + 1}`}
+                className="w-full p-1 border rounded"
+                value={t.value}
+                onChange={(e) => {
+                  const updated = formData.temporal.map((item: any) =>
+                    item.id === t.id ? { ...item, value: e.target.value } : item
+                  );
+                  setFormData((prev: any) => ({ ...prev, temporal: updated }));
+                }}
+              />
+              <button
+                onClick={() => {
+                  const updated = formData.temporal.filter((item: any) => item.id !== t.id);
+                  setFormData((prev: any) => ({ ...prev, temporal: updated }));
+                }}
+                className="px-2 text-red-600 hover:text-red-800"
+                title="Удалить"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              setFormData((prev: any) => ({
+                ...prev,
+                temporal: [...prev.temporal, { id: uuidv4(), value: '' }],
+              }));
+            }}
+            className="px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+          >
+            + Добавить Temporal
+          </button>
+        </>
+      );
     }
 
     if (nodeType === 'event') {
