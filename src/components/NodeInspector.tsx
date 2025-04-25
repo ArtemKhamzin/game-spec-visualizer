@@ -86,6 +86,13 @@ const NodeInspector: React.FC<Props> = ({
           .map((v: string) => ({ id: uuidv4(), value: v.trim() }))
           .filter((t: { id: string; value: string }) => t.value !== '');
       }
+
+      if (data.nodeType === 'event' && typeof data.probability === 'string') {
+        data.probability = data.probability
+          .split('#end#')
+          .map((v: string) => ({ id: uuidv4(), value: v.trim() }))
+          .filter((p: { id: string; value: string }) => p.value !== '');
+      }
   
       setEditedData(data);
     }
@@ -100,6 +107,10 @@ const NodeInspector: React.FC<Props> = ({
 
       if (editedData.nodeType === 'rule' && Array.isArray(editedData.temporal)) {
         dataToSend.temporal = editedData.temporal.map((t: any) => t.value).join('#end#');
+      }
+
+      if (editedData.nodeType === 'event' && Array.isArray(editedData.probability)) {
+        dataToSend.probability = editedData.probability.map((p: any) => p.value).join('#end#');
       }
       
       onUpdateNode(selectedNode.id, dataToSend);
@@ -277,7 +288,7 @@ const NodeInspector: React.FC<Props> = ({
         </select>
       </div>
   
-      {['requires', 'effect', 'probability'].map((key) => (
+      {['requires', 'effect'].map((key) => (
         <div key={key} className="mt-2">
           <strong>{key.charAt(0).toUpperCase() + key.slice(1)}:</strong>
           <input
@@ -288,6 +299,46 @@ const NodeInspector: React.FC<Props> = ({
           />
         </div>
       ))}
+
+      <div className="mt-4 font-semibold">Probability:</div>
+      {(editedData.probability || []).map((entry: { id: string; value: string }) => (
+        <div key={entry.id} className="flex items-center gap-2 mt-2 ml-2">
+          <input
+            type="text"
+            className="w-full p-1 border rounded"
+            value={entry.value}
+            onChange={(e) => {
+              const newList = editedData.probability.map((p: { id: string; value: string }) =>
+                p.id === entry.id ? { ...p, value: e.target.value } : p
+              );
+              setEditedData((prev: any) => ({ ...prev, probability: newList }));
+            }}
+          />
+          <button
+            onClick={() => {
+              const newList = editedData.probability.filter((p: { id: string }) => p.id !== entry.id);
+              setEditedData((prev: any) => ({ ...prev, probability: newList }));
+            }}
+            className="px-2 text-red-600 hover:text-red-800"
+            title="Удалить"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+
+      <button
+        onClick={() => {
+          const newEntry = { id: uuidv4(), value: '' };
+          setEditedData((prev: any) => ({
+            ...prev,
+            probability: [...(prev.probability || []), newEntry],
+          }));
+        }}
+        className="mt-2 ml-2 px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+      >
+        + Добавить Probability
+      </button>
     </>
   );
 

@@ -18,7 +18,8 @@ const getInitialData = (nodeType: 'rule' | 'entity' | 'event') => {
     case 'entity':
       return { label: '', attributes: [{ id: uuidv4(), name: '', value: '' }] };
     case 'event':
-      return { label: '', target: '', requires: '', effect: '', probability: '', trigger: '', entityId: '' };
+      return { label: '', target: '', requires: '', effect: '', 
+        probability: [{ id: uuidv4(), value: '' }], trigger: '', entityId: '' };
     default:
       return {};
   }
@@ -73,6 +74,13 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
     if (nodeType === 'rule') {
       output.temporal = formData.temporal
         .map((t: { value: string }) => t.value.trim())
+        .filter((v: string) => v !== '')
+        .join('#end#');
+    }
+
+    if (nodeType === 'event') {
+      output.probability = formData.probability
+        .map((p: { value: string }) => p.value.trim())
         .filter((v: string) => v !== '')
         .join('#end#');
     }
@@ -239,8 +247,8 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
               ))}
             </select>
           </div>
-
-          {['label', 'requires', 'effect', 'probability'].map((field) => (
+    
+          {['label', 'requires', 'effect'].map((field) => (
             <div key={field} className="mb-3">
               <strong>{field.charAt(0).toUpperCase() + field.slice(1)}:</strong>
               <input
@@ -251,6 +259,45 @@ const AddNodeModal: React.FC<AddNodeModalProps> = ({ nodeType, onClose, onSubmit
               />
             </div>
           ))}
+    
+          <div className="mb-2 font-semibold">Probability:</div>
+          {formData.probability.map((p: any, index: number) => (
+            <div key={p.id} className="flex items-center gap-2 mb-2">
+              <input
+                type="text"
+                placeholder={`Probability ${index + 1}`}
+                className="w-full p-1 border rounded"
+                value={p.value}
+                onChange={(e) => {
+                  const updated = formData.probability.map((item: any) =>
+                    item.id === p.id ? { ...item, value: e.target.value } : item
+                  );
+                  setFormData((prev: any) => ({ ...prev, probability: updated }));
+                }}
+              />
+              <button
+                onClick={() => {
+                  const updated = formData.probability.filter((item: any) => item.id !== p.id);
+                  setFormData((prev: any) => ({ ...prev, probability: updated }));
+                }}
+                className="px-2 text-red-600 hover:text-red-800"
+                title="Удалить"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => {
+              setFormData((prev: any) => ({
+                ...prev,
+                probability: [...prev.probability, { id: uuidv4(), value: '' }],
+              }));
+            }}
+            className="px-3 py-1 text-sm bg-gray-100 border rounded hover:bg-gray-200"
+          >
+            + Добавить Probability
+          </button>
         </>
       );
     }
