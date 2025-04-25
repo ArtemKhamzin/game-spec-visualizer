@@ -11,11 +11,12 @@ type NodeData = {
   target?: string;
   entityId?: string;
   when?: string;
+  temporal?: string;
 };
 
 export function graphToSpec(nodes: Node<NodeData>[], edges: Edge[]): string {
   const entityNodes = nodes.filter(n => n.data.nodeType === 'entity');
-  const eventNodes  = nodes.filter(n => n.data.nodeType === 'event');
+  
   const ruleNodes   = nodes.filter(n => n.data.nodeType === 'rule');
 
   const outgoing = (id: string, type: string) =>
@@ -23,21 +24,21 @@ export function graphToSpec(nodes: Node<NodeData>[], edges: Edge[]): string {
   const incoming = (id: string, type: string) =>
     edges.filter(e => e.target === id && e.data?.edgeType === type);
 
-  const renderEntity = (ent: Node<NodeData>): string => {
-    let attrsArray: { name: string; value: string }[] = [];
-    const raw = ent.data.attributes;
+  const normalizeAttributes = (raw: any): { name: string; value: string }[] => {
     if (Array.isArray(raw)) {
-      attrsArray = raw.map(a => ({
-        name: a.name,
-        value: a.value
-      }));
+      return raw.map(a => ({ name: a.name, value: a.value }));
     } else if (raw && typeof raw === 'object') {
-      attrsArray = Object.entries(raw).map(([name, val]) => ({
+      return Object.entries(raw).map(([name, val]) => ({
         name,
         value: String(val)
       }));
     }
-    const attrsText = attrsArray
+    return [];
+  };
+
+  const renderEntity = (ent: Node<NodeData>): string => {
+    const attrsArr = normalizeAttributes(ent.data.attributes);
+    const attrsText = attrsArr
       .map(a => `        ${a.name}: ${a.value}`)
       .join('\n');
 
@@ -57,29 +58,53 @@ ${eventsText}
   };
 
   const renderEvent = (ev: Node<NodeData>): string => {
-    const parts: string[] = [];
-    if (ev.data.requires)    parts.push(`    Requires: ${ev.data.requires}`);
-    if (ev.data.effect)      parts.push(`    Effect: ${ev.data.effect}`);
-    if (ev.data.probability) parts.push(`    P[${ev.data.probability}]`);
+    const lines: string[] = [];
+    lines.push(`    Event ${ev.data.label} {`);
+
+    if (ev.data.requires)    lines.push(`        Requires: ${ev.data.requires}`);
+    if (ev.data.effect)      lines.push(`        Effect: ${ev.data.effect}`);
+
+    if (ev.data.probability) {
+      ev.data.probability
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean)
+        .forEach(p => {
+          if (p.startsWith('P[')) lines.push(`        ${p}`);
+          else                    lines.push(`        P[${p}]`);
+        });
+    }
 
     outgoing(ev.id, 'target').forEach(e => {
       const tgt = nodes.find(n => n.id === e.target);
-      if (tgt) parts.push(`    Target: ${tgt.data.label}`);
+      if (tgt) lines.push(`        Target: ${tgt.data.label}`);
     });
 
     incoming(ev.id, 'trigger').forEach(e => {
       const src = nodes.find(n => n.id === e.source);
-      if (src) parts.push(`    Trigger: ${src.data.label}`);
+      if (src) lines.push(`        Trigger: ${src.data.label}`);
     });
 
-    return `    Event ${ev.data.label} {\n${parts.join('\n')}\n    }`;
+    lines.push(`    }`);
+    return lines.join('\n');
   };
 
   const renderRule = (r: Node<NodeData>): string => {
-    const parts: string[] = [];
-    if (r.data.when)   parts.push(`    When: ${r.data.when}`);
-    if (r.data.effect) parts.push(`    Effect: ${r.data.effect}`);
-    return `Rule ${r.data.label} {\n${parts.join('\n')}\n}`;
+    const lines: string[] = [];
+    lines.push(`Rule ${r.data.label} {`);
+    if (r.data.when)   lines.push(`    When: ${r.data.when}`);
+    if (r.data.effect) lines.push(`    Effect: ${r.data.effect}`);
+
+    if (r.data.temporal) {
+      r.data.temporal
+        .split(/\r?\n/)
+        .map(l => l.trim())
+        .filter(Boolean)
+        .forEach(t => lines.push(`    ${t}`));
+    }
+
+    lines.push(`}`);
+    return lines.join('\n');
   };
 
   const sections: string[] = [];

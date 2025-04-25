@@ -95,7 +95,7 @@ export class ParserService {
               } else if (eLine.startsWith('Effect:')) {
                 eventNode.data.effect = eLine.replace('Effect:', '').trim();
               } else if (eLine.startsWith('P[')) {
-                eventNode.data.probability += (eventNode.data.probability ? ' ' : '') + eLine;
+                eventNode.data.probability += (eventNode.data.probability ? '#end#' : '') + eLine;
               } else if (eLine.startsWith('Trigger:')) {
                 eventNode.data.trigger = eLine.replace('Trigger:', '').trim();
               }
@@ -139,7 +139,7 @@ export class ParserService {
             rLine.startsWith('P[') ||
             rLine.includes('->')
           ) {
-            ruleNode.data.temporal += (ruleNode.data.temporal ? ' ' : '') + rLine;
+            ruleNode.data.temporal += (ruleNode.data.temporal ? '#end#' : '') + rLine;
           }
           index++;
         }
