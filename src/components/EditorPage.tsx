@@ -330,6 +330,16 @@ const EditorPage = () => {
           edges={graph.edges}
           onNodesChange={onNodesChange}
           onNodeClick={onNodeClick}
+          onPaneClick={() => {
+            setSelectedNode(null);
+            setGraph((prev) => ({
+              nodes: prev.nodes.map((node) => ({
+                ...node,
+                selected: false,
+              })),
+              edges: prev.edges,
+            }));
+          }}
         />
       </div>
 
