@@ -133,7 +133,13 @@ const EditorPage = () => {
 
       if (data.nodeType === 'entity') {
         const entityEdges: Edge[] = prev.nodes
-          .filter((n) => n.data.nodeType === 'rule')
+          .filter((n) => {
+            return (
+              n.data.nodeType === 'rule' &&
+              n.data.when &&
+              n.data.when.includes(data.label)
+            );
+          })
           .map((ruleNode) => ({
             id: `e-${ruleNode.id}-${newNode.id}`,
             source: ruleNode.id,
