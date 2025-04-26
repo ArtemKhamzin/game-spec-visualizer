@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Node, Edge, MarkerType } from 'reactflow';
 
 interface Props {
   onParsed: (graph: { nodes: Node[]; edges: Edge[] }) => void;
+  onClearRequest?: boolean;
 }
 
-const FileUploader: React.FC<Props> = ({ onParsed }) => {
+const FileUploader: React.FC<Props> = ({ onParsed, onClearRequest }) => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0] || null;
@@ -87,11 +89,21 @@ const FileUploader: React.FC<Props> = ({ onParsed }) => {
     }
   };
 
+  useEffect(() => {
+    if (onClearRequest) {
+      setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [onClearRequest]);
+
   return (
     <div className="flex items-center gap-4">
       <label className="relative cursor-pointer inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
         Выбрать файл
         <input
+          ref={fileInputRef}
           type="file"
           accept=".spec"
           onChange={handleFileChange}

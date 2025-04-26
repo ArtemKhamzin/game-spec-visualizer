@@ -17,6 +17,7 @@ const EditorPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [modalType, setModalType] = useState<null | 'rule' | 'entity' | 'event'>(null);
+  const [clearFileRequest, setClearFileRequest] = useState(false);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setGraph((prevGraph) => ({
@@ -285,12 +286,14 @@ const EditorPage = () => {
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
         <div className="mb-4 flex items-center gap-4">
-          <FileUploader onParsed={setGraph} />
+          <FileUploader onParsed={setGraph} onClearRequest={clearFileRequest} />
           <button
             className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
             onClick={() => {
               setGraph({ nodes: [], edges: [] });
               setSelectedNode(null);
+              setClearFileRequest(true);
+              setTimeout(() => setClearFileRequest(false), 0);
             }}
           >
             Очистить все
