@@ -208,6 +208,14 @@ const EditorPage = () => {
   };  
 
   const selectNodeById = (id: string) => {
+    setGraph((prev) => ({
+      nodes: prev.nodes.map((node) => ({
+        ...node,
+        selected: node.id === id,
+      })),
+      edges: prev.edges,
+    }));
+  
     const node = graph.nodes.find((n) => n.id === id);
     if (node) setSelectedNode(node);
   };
