@@ -65,6 +65,31 @@ const EditorPage = () => {
     URL.revokeObjectURL(url);
   };
 
+  const updateRuleEdges = (ruleId: string, newWhen: string) => {
+    setGraph((prev) => {
+      const updatedEdges = prev.edges.filter(
+        (edge) => !(edge.source === ruleId && edge.data?.edgeType === 'rule-effect')
+      );
+  
+      const entityNodes = prev.nodes.filter((n) => n.data.nodeType === 'entity');
+  
+      const newEdges = entityNodes
+        .filter((entity) => newWhen.includes(entity.data.label))
+        .map((entity) => ({
+          id: `e-${ruleId}-${entity.id}`,
+          source: ruleId,
+          target: entity.id,
+          type: 'customEdge',
+          data: { edgeType: 'rule-effect' },
+        }));
+  
+      return {
+        ...prev,
+        edges: [...updatedEdges, ...newEdges],
+      };
+    });
+  };  
+
   const handleAddNode = (data: any) => {
     const id = `${data.nodeType}-${idCounter++}`;
     const offsetX = 100 + idCounter * 40;
@@ -92,7 +117,9 @@ const EditorPage = () => {
       
       if (data.nodeType === 'rule') {
         const ruleEdges: Edge[] = prev.nodes
-          .filter((n) => n.data.nodeType === 'entity')
+          .filter((n) => {
+            return n.data.nodeType === 'entity' && data.when && data.when.includes(n.data.label);
+          })
           .map((entityNode) => ({
             id: `e-${newNode.id}-${entityNode.id}`,
             source: newNode.id,
@@ -319,6 +346,7 @@ const EditorPage = () => {
           onUpdateEventEdge={updateEventEdge}
           onUpdateTargetEdge={updateTargetEdge}
           onUpdateTriggerEdge={updateTriggerEdge}
+          onUpdateRuleEdges={updateRuleEdges}
           onSelectNode={selectNodeById}
           events={eventNodes}
           entities={entityNodes}

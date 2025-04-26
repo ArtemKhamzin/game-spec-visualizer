@@ -36,7 +36,6 @@ export class ParserService {
     while (index < lines.length) {
       const line = clean(lines[index]);
 
-      // === ENTITY ===
       if (line.startsWith('Entity')) {
         const entityName = line.split(/\s+/)[1];
         const entityId = nextId();
@@ -112,7 +111,6 @@ export class ParserService {
         index++;
       }
 
-      // === RULE ===
       else if (line.startsWith('Rule')) {
         const ruleName = line.split(/\s+/)[1];
         const ruleId = nextId();
@@ -145,8 +143,10 @@ export class ParserService {
         }
         index++;
         nodes.push(ruleNode);
-        for (const entId of Object.values(entityMap)) {
-          edges.push({ source: ruleId, target: entId, type: 'rule-effect' });
+        for (const [entityLabel, entId] of Object.entries(entityMap)) {
+          if (ruleNode.data.when.includes(entityLabel)) {
+            edges.push({ source: ruleId, target: entId, type: 'rule-effect' });
+          }
         }
       }
 
@@ -155,7 +155,6 @@ export class ParserService {
       }
     }
 
-    // === TRIGGERS ===
     for (const node of nodes) {
       if (node.type === 'event') {
         if (node.data.trigger) {

@@ -11,6 +11,7 @@ interface Props {
   onUpdateEventEdge: (nodeId: string, newEntityId: string) => void;
   onUpdateTargetEdge: (nodeId: string, newTargetId: string) => void;
   onUpdateTriggerEdge: (nodeId: string, newTriggerSourceId: string) => void;
+  onUpdateRuleEdges: (nodeId: string, newWhen: string) => void;
   onSelectNode: (nodeId: string) => void;
   events: Node[];
   entities: any[];
@@ -39,6 +40,7 @@ const NodeInspector: React.FC<Props> = ({
   onUpdateEventEdge,
   onUpdateTargetEdge,
   onUpdateTriggerEdge,
+  onUpdateRuleEdges,
   onSelectNode,
   events,
   entities,
@@ -119,6 +121,10 @@ const NodeInspector: React.FC<Props> = ({
 
   const handleChange = (key: string, value: string) => {
     setEditedData((prev: any) => ({ ...prev, [key]: value }));
+  
+    if (key === 'when' && selectedNode?.data?.nodeType === 'rule') {
+      onUpdateRuleEdges(selectedNode.id, value);
+    }
   };
 
   const handleAttrChange = (id: string, field: 'name' | 'value', value: string) => {
