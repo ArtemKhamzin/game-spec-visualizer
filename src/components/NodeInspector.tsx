@@ -403,6 +403,32 @@ const NodeInspector: React.FC<Props> = ({
       >
         + Добавить Temporal
       </button>
+
+      {entities && (
+        <div className="mt-6">
+          <strong className="block mb-2">Entities (по условию When):</strong>
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {entities
+              .filter((entity) =>
+                edges.some(
+                  (e) =>
+                    e.source === selectedNode?.id &&
+                    e.target === entity.id &&
+                    e.data?.edgeType === 'rule-effect'
+                )
+              )
+              .map((entity) => (
+                <li
+                  key={entity.id}
+                  className="cursor-pointer text-black hover:underline"
+                  onClick={() => onSelectNode(entity.id)}
+                >
+                  {entity.data?.label || entity.id}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 
