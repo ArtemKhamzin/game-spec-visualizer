@@ -6,6 +6,7 @@ import FileUploader from './FileUploader';
 import GraphCanvas from './GraphCanvas';
 import NodeInspector from './NodeInspector';
 import AddNodeModal from './AddNodeModal';
+import ProjectSidebar from './ProjectSidebar';
 import { graphToSpec } from '@/../backend/src/exporters/generateSpec';
 
 let idCounter = 1;
@@ -18,6 +19,9 @@ const EditorPage = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [modalType, setModalType] = useState<null | 'rule' | 'entity' | 'event'>(null);
   const [clearFileRequest, setClearFileRequest] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setGraph((prevGraph) => ({
@@ -289,6 +293,11 @@ const EditorPage = () => {
 
   return (
     <div ref={containerRef} className="flex h-screen w-screen overflow-hidden">
+      <ProjectSidebar
+        isLoggedIn={isLoggedIn}
+        onLoginClick={() => setShowLoginModal(true)}
+        onRegisterClick={() => setShowRegisterModal(true)}
+      />
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
         <div className="mb-4 flex items-center gap-4">
