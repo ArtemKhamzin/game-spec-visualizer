@@ -15,6 +15,8 @@ const EditorPage = () => {
   const [graph, setGraph] = useState<{ nodes: Node[]; edges: Edge[] }>({ nodes: [], edges: [] });
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [inspectorWidth, setInspectorWidth] = useState(300);
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [draggingSide, setDraggingSide] = useState<'left' | 'right' | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [modalType, setModalType] = useState<null | 'rule' | 'entity' | 'event'>(null);
@@ -258,16 +260,33 @@ const EditorPage = () => {
     if (node) setSelectedNode(node);
   };
 
-  const onMouseDown = () => setIsDragging(true);
+  const onMouseDownLeft = () => {
+    setDraggingSide('left');
+    setIsDragging(true);
+  };
+  
+  const onMouseDownRight = () => {
+    setDraggingSide('right');
+    setIsDragging(true);
+  };
 
   const onMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging || !containerRef.current) return;
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const newWidth = containerRect.right - e.clientX;
-    setInspectorWidth(newWidth > 150 ? newWidth : 150);
-  }, [isDragging]);
+    if (!draggingSide || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+  
+    if (draggingSide === 'left') {
+      const newLeftWidth = e.clientX - rect.left;
+      setSidebarWidth(newLeftWidth > 150 ? newLeftWidth : 150);
+    }
+  
+    if (draggingSide === 'right') {
+      const newRightWidth = rect.right - e.clientX;
+      setInspectorWidth(newRightWidth > 150 ? newRightWidth : 150);
+    }
+  }, [draggingSide]);
+  
 
-  const onMouseUp = useCallback(() => setIsDragging(false), [isDragging]);
+  const onMouseUp = useCallback(() => setDraggingSide(null), []);
 
   useEffect(() => {
     if (isDragging) {
@@ -293,11 +312,17 @@ const EditorPage = () => {
 
   return (
     <div ref={containerRef} className="flex h-screen w-screen overflow-hidden">
-      <ProjectSidebar
-        isLoggedIn={isLoggedIn}
-        onLoginClick={() => setShowLoginModal(true)}
-        onRegisterClick={() => setShowRegisterModal(true)}
-      />
+      <div
+        style={{ width: sidebarWidth }}
+        className="p-4 border-r overflow-auto h-full flex-shrink-0 bg-[var(--background)]"
+      >
+        <ProjectSidebar
+          isLoggedIn={isLoggedIn}
+          onLoginClick={() => setShowLoginModal(true)}
+          onRegisterClick={() => setShowRegisterModal(true)}
+        />
+      </div>
+      <div onMouseDown={onMouseDownLeft} className="w-2 cursor-col-resize bg-gray-300" />
       <div className="flex-1 h-full p-4 overflow-hidden">
         <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
         <div className="mb-4 flex items-center gap-4">
@@ -361,7 +386,7 @@ const EditorPage = () => {
         />
       </div>
 
-      <div onMouseDown={onMouseDown} className="w-2 cursor-col-resize bg-gray-300" />
+      <div onMouseDown={onMouseDownRight} className="w-2 cursor-col-resize bg-gray-300" />
 
       <div
         style={{ width: inspectorWidth }}
