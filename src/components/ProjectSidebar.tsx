@@ -16,14 +16,28 @@ const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterC
         <h2 className="text-lg font-bold mb-4">Проекты</h2>
 
         {!isLoggedIn ? (
-          <div className="flex flex-col gap-3">
-            <button onClick={onLoginClick} className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Войти
-            </button>
-            <button onClick={onRegisterClick} className="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              Регистрация
-            </button>
-          </div>
+          <div className="text-sm text-gray-800 space-y-2">
+          <p>
+            &#128100; Чтобы сохранять проекты,&nbsp;
+            <span
+              onClick={onLoginClick}
+              className="cursor-pointer underline hover:text-blue-600 text-black"
+            >
+              войдите в аккаунт
+            </span>
+            .
+          </p>
+          <p>
+            Нет аккаунта?&nbsp;
+            <span
+              onClick={onRegisterClick}
+              className="cursor-pointer underline hover:text-blue-600 text-black"
+            >
+              Зарегистрируйтесь
+            </span>
+            .
+          </p>
+        </div>
         ) : (
           <div className="flex flex-col h-full justify-between">
             <div className="flex-1 overflow-auto text-sm text-gray-600">

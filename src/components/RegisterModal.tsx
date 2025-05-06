@@ -26,7 +26,8 @@ const RegisterModal: React.FC<Props> = ({ onClose }) => {
       });
 
       if (!res.ok) {
-        setError('Ошибка при регистрации');
+        const json = await res.json();
+        setError(json.message?.[0] || 'Ошибка при регистрации');
         return;
       }
 
