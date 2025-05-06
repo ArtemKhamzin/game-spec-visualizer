@@ -6,6 +6,8 @@ import FileUploader from './FileUploader';
 import GraphCanvas from './GraphCanvas';
 import NodeInspector from './NodeInspector';
 import AddNodeModal from './AddNodeModal';
+import LoginModal from './LoginModal';
+import RegisterModal from './RegisterModal';
 import ProjectSidebar from './ProjectSidebar';
 import { graphToSpec } from '@/../backend/src/exporters/generateSpec';
 
@@ -320,6 +322,10 @@ const EditorPage = () => {
           isLoggedIn={isLoggedIn}
           onLoginClick={() => setShowLoginModal(true)}
           onRegisterClick={() => setShowRegisterModal(true)}
+          onLogout={() => {
+            localStorage.removeItem('token');
+            setIsLoggedIn(false);
+          }}
         />
       </div>
       <div onMouseDown={onMouseDownLeft} className="w-2 cursor-col-resize bg-gray-300" />
@@ -414,6 +420,19 @@ const EditorPage = () => {
           onSubmit={handleAddNode}
           entities={modalType === 'event' ? entityNodes : undefined}
           events={modalType === 'event' ? eventNodes : undefined}
+        />
+      )}
+
+      {showLoginModal && (
+        <LoginModal
+          onClose={() => setShowLoginModal(false)}
+          onLoginSuccess={() => setIsLoggedIn(true)}
+        />
+      )}
+
+      {showRegisterModal && (
+        <RegisterModal
+          onClose={() => setShowRegisterModal(false)}
         />
       )}
     </div>
