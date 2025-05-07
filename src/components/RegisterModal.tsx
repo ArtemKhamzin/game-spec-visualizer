@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 
 interface Props {
   onClose: () => void;
+  onOpenLogin: () => void;
 }
 
-const RegisterModal: React.FC<Props> = ({ onClose }) => {
+const RegisterModal: React.FC<Props> = ({ onClose, onOpenLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -27,11 +28,16 @@ const RegisterModal: React.FC<Props> = ({ onClose }) => {
 
       if (!res.ok) {
         const json = await res.json();
-        setError(json.message?.[0] || 'Ошибка при регистрации');
+        setError(
+          Array.isArray(json.message)
+            ? json.message[0]
+            : json.message || 'Ошибка при регистрации'
+        );
         return;
       }
 
       onClose();
+      onOpenLogin();
     } catch (e) {
       console.error(e);
       setError('Ошибка сети');

@@ -14,7 +14,7 @@ export class AuthService {
 
   async register(dto: RegisterDto) {
     const existing = await this.usersService.findByEmail(dto.email);
-    if (existing) throw new ConflictException('Email already registered');
+    if (existing) throw new ConflictException('Пользователь с таким email уже существует');
 
     const hash = await bcrypt.hash(dto.password, 10);
     const user = await this.usersService.createUser(dto.email, hash);
@@ -26,10 +26,10 @@ export class AuthService {
 
   async login(dto: LoginDto) {
     const user = await this.usersService.findByEmail(dto.email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) throw new UnauthorizedException('Неверные учетные данные');
 
     const match = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!match) throw new UnauthorizedException('Invalid credentials');
+    if (!match) throw new UnauthorizedException('Неверные учетные данные');
 
     return {
       token: this.jwtService.sign({ sub: user.id, email: user.email }),

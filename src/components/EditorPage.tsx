@@ -433,6 +433,10 @@ const EditorPage = () => {
       {showRegisterModal && (
         <RegisterModal
           onClose={() => setShowRegisterModal(false)}
+          onOpenLogin={() => {
+            setShowRegisterModal(false);
+            setShowLoginModal(true);
+          }}
         />
       )}
     </div>
