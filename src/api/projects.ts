@@ -20,3 +20,20 @@ export async function saveProject(name: string, data: any) {
   });
   return res.json();
 }
+
+export async function deleteProject(id: string) {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`http://localhost:3001/projects/${id}`, {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.message || 'Ошибка при удалении');
+  }
+
+  return true;
+}

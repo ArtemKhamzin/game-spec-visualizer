@@ -9,9 +9,18 @@ interface Props {
   onLogout: () => void;
   projects?: any[];
   onProjectClick?: (project: any) => void;
+  onDeleteProject?: (id: string) => void;
 }
 
-const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterClick, onLogout, projects, onProjectClick }) => {
+const ProjectSidebar: React.FC<Props> = ({
+  isLoggedIn,
+  onLoginClick,
+  onRegisterClick,
+  onLogout,
+  projects,
+  onProjectClick,
+  onDeleteProject,
+}) => {
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background)]">
       <div className="flex-grow flex flex-col">
@@ -47,10 +56,26 @@ const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterC
               projects.map((project) => (
                 <div
                   key={project.id}
-                  className="cursor-pointer px-2 py-1 hover:bg-gray-200 rounded"
-                  onClick={() => onProjectClick?.(project)}
+                  className="flex items-center justify-between px-2 py-1 hover:bg-gray-200 rounded group"
                 >
-                  📄 {project.name}
+                  <span
+                    className="cursor-pointer"
+                    onClick={() => onProjectClick?.(project)}
+                  >
+                    📄 {project.name}
+                  </span>
+              
+                  <button
+                    onClick={() => {
+                      if (confirm(`Удалить проект "${project.name}"?`)) {
+                        onDeleteProject?.(project.id);
+                      }
+                    }}
+                    className="text-red-500 hover:text-red-700 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Удалить проект"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))
             ) : (

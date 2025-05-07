@@ -11,6 +11,7 @@ import RegisterModal from './RegisterModal';
 import ProjectSidebar from './ProjectSidebar';
 import { graphToSpec } from '@/../backend/src/exporters/generateSpec';
 import { fetchProjects, saveProject } from '@/api/projects';
+import { deleteProject } from '@/api/projects';
 
 let idCounter = 1;
 
@@ -352,6 +353,14 @@ const EditorPage = () => {
           }}
           projects={projects}
           onProjectClick={(project) => setGraph(project.data)}
+          onDeleteProject={async (id: string) => {
+            try {
+              await deleteProject(id);
+              loadProjects();
+            } catch (err: any) {
+              alert(err.message || 'Ошибка при удалении');
+            }
+          }}
         />
       </div>
       <div onMouseDown={onMouseDownLeft} className="w-2 cursor-col-resize bg-gray-300" />
