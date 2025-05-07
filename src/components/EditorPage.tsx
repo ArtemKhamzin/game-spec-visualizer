@@ -10,6 +10,7 @@ import LoginModal from './LoginModal';
 import RegisterModal from './RegisterModal';
 import ProjectSidebar from './ProjectSidebar';
 import { graphToSpec } from '@/../backend/src/exporters/generateSpec';
+import { fetchProjects, saveProject } from '@/api/projects';
 
 let idCounter = 1;
 
@@ -26,6 +27,26 @@ const EditorPage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
+
+  const handleSaveProject = async () => {
+    const name = prompt('Введите название проекта');
+    if (!name) return;
+    try {
+      const saved = await saveProject(name, graph);
+      alert(`Проект сохранён: ${saved.name}`);
+      loadProjects();
+    } catch (e: any) {
+      const msg = await e?.response?.json?.();
+      alert(`Ошибка при сохранении: ${msg?.message || 'Некорректный запрос'}`);
+    }    
+    loadProjects();
+  };
+  
+  const loadProjects = async () => {
+    const list = await fetchProjects();
+    setProjects(list);
+  };
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     setGraph((prevGraph) => ({
@@ -326,6 +347,8 @@ const EditorPage = () => {
             localStorage.removeItem('token');
             setIsLoggedIn(false);
           }}
+          projects={projects}
+          onProjectClick={(project) => setGraph(project.data)}
         />
       </div>
       <div onMouseDown={onMouseDownLeft} className="w-2 cursor-col-resize bg-gray-300" />
@@ -350,6 +373,13 @@ const EditorPage = () => {
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             Экспорт в .spec
+          </button>
+
+          <button
+            onClick={handleSaveProject}
+            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+          >
+            Сохранить проект
           </button>
           
           <div className="ml-auto flex gap-4">
@@ -426,7 +456,10 @@ const EditorPage = () => {
       {showLoginModal && (
         <LoginModal
           onClose={() => setShowLoginModal(false)}
-          onLoginSuccess={() => setIsLoggedIn(true)}
+          onLoginSuccess={() => {
+            setIsLoggedIn(true);
+            loadProjects();
+          }}
         />
       )}
 

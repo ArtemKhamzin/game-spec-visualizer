@@ -7,9 +7,11 @@ interface Props {
   onLoginClick: () => void;
   onRegisterClick: () => void;
   onLogout: () => void;
+  projects?: any[];
+  onProjectClick?: (project: any) => void;
 }
 
-const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterClick, onLogout }) => {
+const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterClick, onLogout, projects, onProjectClick }) => {
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background)]">
       <div className="flex-grow flex flex-col">
@@ -41,7 +43,19 @@ const ProjectSidebar: React.FC<Props> = ({ isLoggedIn, onLoginClick, onRegisterC
         ) : (
           <div className="flex flex-col h-full justify-between">
             <div className="flex-1 overflow-auto text-sm text-gray-600">
-              <p>[Список проектов]</p>
+            {projects?.length ? (
+              projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="cursor-pointer px-2 py-1 hover:bg-gray-200 rounded"
+                  onClick={() => onProjectClick?.(project)}
+                >
+                  📄 {project.name}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500">Проектов пока нет</p>
+            )}
             </div>
 
             <div className="pt-4">

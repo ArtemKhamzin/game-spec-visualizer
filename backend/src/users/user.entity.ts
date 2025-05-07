@@ -1,4 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { OneToMany } from 'typeorm';
+import { Project } from '../projects/project.entity';
 
 @Entity()
 export class User {
@@ -13,4 +15,7 @@ export class User {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Project, (project) => project.owner)
+  projects: Project[];
 }
