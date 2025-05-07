@@ -11,11 +11,20 @@ export class ProjectsService {
     private readonly projectRepo: Repository<Project>,
   ) {}
 
-  async create(name: string, data: any, owner: User): Promise<Project> {
-    console.log('Saving project:', { name, data });
-
+  async create(name: string, data: any, owner: User): Promise<any> {
+    const existing = await this.projectRepo.findOne({
+      where: { name, owner },
+    });
+  
+    if (existing) {
+      existing.data = data;
+      const updated = await this.projectRepo.save(existing);
+      return { ...updated, _updated: true };
+    }
+  
     const project = this.projectRepo.create({ name, data, owner });
-    return this.projectRepo.save(project);
+    const created = await this.projectRepo.save(project);
+    return { ...created, _created: true };
   }
 
   async findAllByUser(owner: User): Promise<Project[]> {

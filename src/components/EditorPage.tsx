@@ -32,15 +32,18 @@ const EditorPage = () => {
   const handleSaveProject = async () => {
     const name = prompt('Введите название проекта');
     if (!name) return;
+  
     try {
       const saved = await saveProject(name, graph);
-      alert(`Проект сохранён: ${saved.name}`);
+      if (saved._updated) {
+        alert(`Проект "${name}" перезаписан`);
+      } else {
+        alert(`Проект "${name}" сохранён`);
+      }
       loadProjects();
     } catch (e: any) {
-      const msg = await e?.response?.json?.();
-      alert(`Ошибка при сохранении: ${msg?.message || 'Некорректный запрос'}`);
-    }    
-    loadProjects();
+      alert(`Ошибка при сохранении: ${e.message || 'неизвестная ошибка'}`);
+    }
   };
   
   const loadProjects = async () => {
