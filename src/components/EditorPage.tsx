@@ -29,6 +29,7 @@ const EditorPage = () => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
   const handleSaveProject = async () => {
     const name = prompt('Введите название проекта');
@@ -352,7 +353,11 @@ const EditorPage = () => {
             setIsLoggedIn(false);
           }}
           projects={projects}
-          onProjectClick={(project) => setGraph(project.data)}
+          onProjectClick={(project) => {
+            setGraph(project.data);
+            setSelectedProjectId(project.id);
+          }}
+          selectedProjectId={selectedProjectId}
           onDeleteProject={async (id: string) => {
             try {
               await deleteProject(id);
@@ -387,12 +392,14 @@ const EditorPage = () => {
             Экспорт в .spec
           </button>
 
-          <button
-            onClick={handleSaveProject}
-            className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
-          >
-            Сохранить проект
-          </button>
+          {isLoggedIn && (
+            <button
+              onClick={handleSaveProject}
+              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
+            >
+              Сохранить проект
+            </button>
+          )}
           
           <div className="ml-auto flex gap-4">
             <button

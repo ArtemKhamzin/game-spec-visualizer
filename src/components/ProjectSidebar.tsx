@@ -10,7 +10,17 @@ interface Props {
   projects?: any[];
   onProjectClick?: (project: any) => void;
   onDeleteProject?: (id: string) => void;
+  selectedProjectId: string | null;
 }
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
 const ProjectSidebar: React.FC<Props> = ({
   isLoggedIn,
@@ -20,6 +30,7 @@ const ProjectSidebar: React.FC<Props> = ({
   projects,
   onProjectClick,
   onDeleteProject,
+  selectedProjectId
 }) => {
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background)]">
@@ -56,26 +67,33 @@ const ProjectSidebar: React.FC<Props> = ({
               projects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between px-2 py-1 hover:bg-gray-200 rounded group"
+                  className={`
+                    p-3 mb-2 rounded border cursor-pointer shadow-sm
+                    ${selectedProjectId === project.id ? 'border-gray-500 bg-[#e0e0e0]' : 'border-gray-300 hover:bg-gray-200'}
+                  `}
+                  onClick={() => onProjectClick?.(project)}
                 >
-                  <span
-                    className="cursor-pointer"
-                    onClick={() => onProjectClick?.(project)}
-                  >
-                    📄 {project.name}
-                  </span>
-              
-                  <button
-                    onClick={() => {
-                      if (confirm(`Удалить проект "${project.name}"?`)) {
-                        onDeleteProject?.(project.id);
-                      }
-                    }}
-                    className="text-red-500 hover:text-red-700 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Удалить проект"
-                  >
-                    ✕
-                  </button>
+                  <div className="flex justify-between items-start">
+                    <div className="font-medium text-sm text-black">
+                      {project.name}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Удалить проект "${project.name}"?`)) {
+                          onDeleteProject?.(project.id);
+                        }
+                      }}
+                      className="text-red-500 hover:text-red-700 text-xs"
+                      title="Удалить проект"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                    
+                  <div className="text-xs text-gray-500 mt-1">
+                    Изменён: {formatDate(project.updatedAt)}
+                  </div>
                 </div>
               ))
             ) : (
