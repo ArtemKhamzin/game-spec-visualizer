@@ -370,57 +370,70 @@ const EditorPage = () => {
       </div>
       <div onMouseDown={onMouseDownLeft} className="w-2 cursor-col-resize bg-gray-300" />
       <div className="flex-1 h-full p-4 overflow-hidden">
-        <h1 className="text-xl font-bold mb-4">Редактор графа</h1>
+        <h1 className="text-xl font-bold mb-4">Редактор</h1>
         <div className="mb-4 flex items-center gap-4">
           <FileUploader onParsed={setGraph} onClearRequest={clearFileRequest} />
-          <button
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-            onClick={() => {
-              setGraph({ nodes: [], edges: [] });
-              setSelectedNode(null);
-              setClearFileRequest(true);
-              setTimeout(() => setClearFileRequest(false), 0);
-            }}
-          >
-            Очистить все
-          </button>
-
+                
           <button
             onClick={handleExportSpec}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className="px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
-            Экспорт в .spec
+            Выгрузить в .spec
           </button>
+                
+          <div className="ml-auto flex gap-3 items-center">
+            {isLoggedIn && (
+              <div
+                onClick={handleSaveProject}
+                title="Сохранить проект"
+                className="cursor-pointer"
+              >
+                <img
+                  src="/assets/icons/save_icon.svg"
+                  alt="Сохранить"
+                  className="w-7 h-7 hover:opacity-80"
+                />
+              </div>
+            )}
 
-          {isLoggedIn && (
-            <button
-              onClick={handleSaveProject}
-              className="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800"
-            >
-              Сохранить проект
-            </button>
-          )}
+            <div className="relative group cursor-pointer" title="Добавить узел">
+              <img src="/assets/icons/add_icon.svg" alt="Добавить" className="w-7 h-7" />
           
-          <div className="ml-auto flex gap-4">
-            <button
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              onClick={() => setModalType('rule')}
+              <div className="absolute right-0 top-full mt-0 w-40 bg-white border rounded shadow-lg z-10 hidden group-hover:block">
+                {[
+                  { type: 'rule', label: 'Правило', hover: 'hover:bg-red-100 hover:text-red-700' },
+                  { type: 'entity', label: 'Сущность', hover: 'hover:bg-green-100 hover:text-green-700' },
+                  { type: 'event', label: 'Событие', hover: 'hover:bg-blue-100 hover:text-blue-700' },
+                ].map((item) => (
+                  <div
+                    key={item.type}
+                    onClick={() => setModalType(item.type as 'entity' | 'event' | 'rule')}
+                    className={`px-4 py-2 cursor-pointer flex items-center gap-2 ${item.hover}`}
+                  >
+                    ➕ {item.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+              
+            <div
+              onClick={() => {
+                setGraph({ nodes: [], edges: [] });
+                setSelectedNode(null);
+                setClearFileRequest(true);
+                setTimeout(() => setClearFileRequest(false), 0);
+              }}
+              title="Очистить редактор"
+              className="cursor-pointer"
             >
-              Добавить правило
-            </button>
-            <button
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              onClick={() => setModalType('entity')}
-            >
-              Добавить сущность
-            </button>
-            <button
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => setModalType('event')}
-            >
-              Добавить событие
-            </button>
+              <img
+                src="/assets/icons/clear_icon.svg"
+                alt="Очистить"
+                className="w-7 h-7 hover:opacity-80"
+              />
+            </div>
           </div>
+
         </div>
 
         <GraphCanvas

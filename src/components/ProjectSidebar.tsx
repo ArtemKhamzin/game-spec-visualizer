@@ -35,7 +35,18 @@ const ProjectSidebar: React.FC<Props> = ({
   return (
     <div className="flex flex-col h-full w-full bg-[var(--background)]">
       <div className="flex-grow flex flex-col">
-        <h2 className="text-lg font-bold mb-4">Проекты</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold">Проекты</h2>
+          {isLoggedIn && (
+            <img
+              src="/assets/icons/logout_icon.svg"
+              alt="Выйти"
+              title="Выйти из аккаунта"
+              onClick={onLogout}
+              className="w-6 h-6 cursor-pointer hover:opacity-80"
+            />
+          )}
+        </div>
 
         {!isLoggedIn ? (
           <div className="text-sm text-gray-800 space-y-2">
@@ -69,13 +80,13 @@ const ProjectSidebar: React.FC<Props> = ({
                   key={project.id}
                   className={`
                     p-3 mb-2 rounded border cursor-pointer shadow-sm
-                    ${selectedProjectId === project.id ? 'border-gray-500 bg-[#e0e0e0]' : 'border-gray-300 hover:bg-gray-200'}
+                    ${selectedProjectId === project.id ? 'border-gray-500 bg-[#ededed]' : 'border-gray-300 hover:bg-gray-200'}
                   `}
                   onClick={() => onProjectClick?.(project)}
                 >
                   <div className="flex justify-between items-start">
-                    <div className="font-medium text-sm text-black">
-                      {project.name}
+                    <div className="font-medium text-base text-black">
+                      &#128196; {project.name}
                     </div>
                     <button
                       onClick={(e) => {
@@ -84,7 +95,7 @@ const ProjectSidebar: React.FC<Props> = ({
                           onDeleteProject?.(project.id);
                         }
                       }}
-                      className="text-red-500 hover:text-red-700 text-xs"
+                      className="text-red-500 hover:text-red-700 text-xs font-bold"
                       title="Удалить проект"
                     >
                       ✕
@@ -99,15 +110,6 @@ const ProjectSidebar: React.FC<Props> = ({
             ) : (
               <p className="text-gray-500">Проектов пока нет</p>
             )}
-            </div>
-
-            <div className="pt-4">
-              <button
-                onClick={onLogout}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
-                Выйти
-              </button>
             </div>
           </div>
         )}

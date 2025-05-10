@@ -100,8 +100,8 @@ const FileUploader: React.FC<Props> = ({ onParsed, onClearRequest }) => {
 
   return (
     <div className="flex items-center gap-4">
-      <label className="relative cursor-pointer inline-block px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-        Выбрать файл
+      <label className="relative cursor-pointer inline-block px-2 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
+        Загрузить .spec
         <input
           ref={fileInputRef}
           type="file"
@@ -116,7 +116,7 @@ const FileUploader: React.FC<Props> = ({ onParsed, onClearRequest }) => {
       <button
         onClick={handleParseClick}
         disabled={!file || loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+        className="px-2 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
       >
         {loading ? 'Загрузка...' : 'Отобразить'}
       </button>

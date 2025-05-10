@@ -178,7 +178,7 @@ const NodeInspector: React.FC<Props> = ({
           />
           <button
             onClick={() => removeAttribute(attr.id)}
-            className="px-2 text-red-600 hover:text-red-800"
+            className="px-2 text-red-600 hover:text-red-800 font-bold"
             title="Удалить"
           >
             ✕
@@ -325,7 +325,7 @@ const NodeInspector: React.FC<Props> = ({
               const newList = editedData.probability.filter((p: { id: string }) => p.id !== entry.id);
               setEditedData((prev: any) => ({ ...prev, probability: newList }));
             }}
-            className="px-2 text-red-600 hover:text-red-800"
+            className="px-2 text-red-600 hover:text-red-800 font-bold"
             title="Удалить"
           >
             ✕
@@ -383,7 +383,7 @@ const NodeInspector: React.FC<Props> = ({
               );
               setEditedData((prev: any) => ({ ...prev, temporal: newList }));
             }}
-            className="px-2 text-red-600 hover:text-red-800"
+            className="px-2 text-red-600 hover:text-red-800 font-bold"
             title="Удалить"
           >
             ✕
@@ -442,9 +442,24 @@ const NodeInspector: React.FC<Props> = ({
 
   return (
     <div>
-      <h2 className="text-lg font-bold mb-2">
-        Свойства узла {selectedNode?.data?.label && `«${selectedNode.data.label}»`}
-      </h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-lg font-bold">
+          Свойства узла {selectedNode?.data?.label && `«${selectedNode.data.label}»`}
+        </h2>
+        {selectedNode && (
+          <img
+            src="/assets/icons/trash_icon.svg"
+            alt="Удалить узел"
+            title="Удалить узел"
+            className="w-6 h-6 cursor-pointer hover:opacity-80"
+            onClick={() => {
+              if (confirm('Удалить узел?')) {
+                onDeleteNode(selectedNode.id);
+              }
+            }}
+          />
+        )}
+      </div>
       {selectedNode ? (
         <div className="text-sm">
           <div>
@@ -454,18 +469,6 @@ const NodeInspector: React.FC<Props> = ({
             <strong>Type:</strong> {editedData.nodeType || ''}
           </div>
           {renderFields()}
-          <div className="mt-4">
-            <button
-              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              onClick={() => {
-                if (confirm('Удалить узел?')) {
-                  onDeleteNode(selectedNode.id);
-                }
-              }}
-            >
-              Удалить узел
-            </button>
-          </div>
         </div>
       ) : (
         <div>Узел не выбран</div>
